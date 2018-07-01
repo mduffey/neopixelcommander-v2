@@ -10,7 +10,6 @@ namespace NeoPixelCommander.Library.ColorManagers
         private Timer _timer;
         private int _intensity, _changeRate, _interval;
         private Dynamic _dynamic = new Dynamic();
-        private Static _static = new Static();
         public Moodlight()
         {
             _timer = new Timer();
@@ -19,15 +18,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             _interval = 25;
             _timer.Elapsed += (sender, e) => 
             {
-                Color color;
-                if (IsDynamic)
-                {
-                    color = _dynamic.Process(_intensity, _changeRate);
-                }
-                else
-                {
-                    color = _static.Process();
-                }
+                var color = _dynamic.Process(_intensity, _changeRate);
                 LEDs.SendUniversal(color);
             };
         }
@@ -70,8 +61,6 @@ namespace NeoPixelCommander.Library.ColorManagers
                 }
             }
         }
-
-        public bool IsDynamic { get; set; } = false;
 
         public void Start()
         {
@@ -141,25 +130,6 @@ namespace NeoPixelCommander.Library.ColorManagers
                 if (target < current - changeRate)
                     return current - changeRate;
                 return target;
-            }
-        }
-
-        private class Static
-        {
-            private static List<Color> _targets = new List<Color>
-            {
-                new Color {R = 209, G = 2, B = 2 },
-                new Color {R = 209, G = 2, B = 2 },
-                new Color {R = 209, G = 2, B = 2 },
-                new Color {R = 209, G = 2, B = 2 },
-                new Color {R = 209, G = 2, B = 2 },
-                new Color {R = 209, G = 2, B = 2 },
-                new Color {R = 209, G = 2, B = 2 },
-            };
-            private Color _current = new Color();
-            public Color Process()
-            {
-                return Colors.Black;
             }
         }
     }

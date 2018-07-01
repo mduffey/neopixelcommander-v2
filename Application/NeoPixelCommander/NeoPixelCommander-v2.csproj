@@ -91,7 +91,12 @@
     <Compile Include="ViewModel\ILightManager.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\MoodlightViewModel.cs" />
+    <Compile Include="ViewModel\SingleColorViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Page Include="DataTemplates\SingleColor.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="DataTemplates\Moodlight.xaml">
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>

@@ -13,7 +13,10 @@ namespace NeoPixelCommander.ViewModel
     public class MoodlightViewModel: ViewModelBase, ILightManager
     {
         public string Name => "Moodlight";
+        public bool IsActive => true;
+
         private Moodlight _moodlight;
+
         public MoodlightViewModel()
         {
             _moodlight = new Moodlight();
@@ -53,19 +56,6 @@ namespace NeoPixelCommander.ViewModel
                 if (_moodlight.ChangeRate != value)
                 {
                     _moodlight.ChangeRate = value;
-                    RaisePropertyChanged();
-                }
-            }
-        }
-        
-        public bool Dynamic
-        {
-            get => _moodlight.IsDynamic;
-            set
-            {
-                if(_moodlight.IsDynamic != value)
-                {
-                    _moodlight.IsDynamic = value;
                     RaisePropertyChanged();
                 }
             }

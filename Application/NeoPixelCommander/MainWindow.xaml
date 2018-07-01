@@ -11,6 +11,7 @@
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="DataTemplates\Moodlight.xaml"/>
+                <ResourceDictionary Source="DataTemplates\SingleColor.xaml"/>
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -26,8 +27,9 @@
             </Grid.ColumnDefinitions>
             <StackPanel>
                 <TextBlock Text="Status" />
+                <ToggleButton Content="Pause" IsChecked="{Binding Pause}" />
             </StackPanel>
-            <ListView Grid.Column="1" ItemsSource="{Binding AvailableManagers}" SelectedItem="{Binding ActiveManager}">
+            <ListView Grid.Column="1" ItemsSource="{Binding AvailableManagers}" SelectedItem="{Binding SelectedManager}">
                 <ListView.ItemTemplate>
                     <DataTemplate>
                         <TextBlock Text="{Binding Name}"/>
@@ -35,6 +37,6 @@
                 </ListView.ItemTemplate>
             </ListView>
         </Grid>
-        <ContentPresenter Grid.Row="1" Content="{Binding ActiveManager}" />
+        <ContentPresenter Grid.Row="1" Content="{Binding SelectedManager}" />
     </Grid>
 </Window>

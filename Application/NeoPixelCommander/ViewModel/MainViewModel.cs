@@ -39,18 +39,42 @@ namespace NeoPixelCommander.ViewModel
 
         public List<ILightManager> AvailableManagers => _availableManagers;
 
-        private ILightManager _activeManager;
-        public ILightManager ActiveManager
+        private ILightManager _selectedManager;
+        public ILightManager SelectedManager
         {
-            get => _activeManager;
+            get => _selectedManager;
             set
             {
-                if (_activeManager == null || _activeManager.Name != value.Name)
+                if (_selectedManager == null || _selectedManager.Name != value.Name)
                 {
-                    _activeManager?.Stop();
-                    _activeManager = value;
-                    _activeManager.Start();
+                    _selectedManager?.Stop();
+                    _selectedManager = value;
+                    _selectedManager.Start();
                     RaisePropertyChanged();
+                    RaisePropertyChanged(nameof(CanPause));
+                }
+            }
+        }
+        
+        public bool CanPause => _selectedManager?.IsActive == true;
+
+        private bool _pause;
+        public bool Pause
+        {
+            get => _pause;
+            set
+            {
+                if (_pause != value)
+                {
+                    _pause = value;
+                    if (_pause)
+                    {
+                        _selectedManager.Stop();
+                    }
+                    else
+                    {
+                        _selectedManager.Start();
+                    }
                 }
             }
         }
