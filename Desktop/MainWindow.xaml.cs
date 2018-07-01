@@ -1,4 +1,6 @@
-﻿using System;
+﻿using NeoPixelCommander.Library;
+using NeoPixelCommander.Library.ColorManagers;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -11,24 +13,19 @@ using System.Windows.Data;
 using System.Windows.Documents;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using HidLibrary;
 
-namespace ColorControl
+namespace NeoPixelCommander
 {
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
     public partial class MainWindow : Window
     {
-        private Communicator _communicator;
+        public IColorManager ActiveManager;
         public MainWindow()
         {
             InitializeComponent();
-            _communicator = new Communicator();
-            ColorCanvas.SelectedColor = Colors.DarkMagenta;
+            //ColorCanvas.SelectedColor = Colors.DarkMagenta;
         }
 
 
@@ -36,20 +33,29 @@ namespace ColorControl
         {
             byte[] bytes = new byte[65];
             bytes[1] = 200;
-            _communicator.SendMessage(bytes);
+            Communicator.Instance.SendMessage(bytes);
         }
 
         private void Update_Click(object sender, RoutedEventArgs e)
         {
-            var color = ColorCanvas.SelectedColor;
-            var messages = PackageGenerator.Create(Strip.Text.ToInt())
-                .SetRange(FirstIndex.Text.ToInt(), LastIndex.Text.ToInt())
-                .SetColor(ColorCanvas.SelectedColor.Value)
-                .BuildPackets();
+            ActiveManager?.Stop();
+            var moodlight = new Moodlight();
+            moodlight.ChangeRate = Convert.ToInt32(Moodlight.ChangeRate.Value);
+            moodlight.Intensity = Convert.ToInt32(Moodlight.Intensity.Value);
+            moodlight.IsDynamic = true;
+            moodlight.Start();
+            ActiveManager = moodlight;
 
-            var result = _communicator.SendMessages(messages.ToArray());
-            MessageCountBlock.Text = $"{result.Attempts}";
-            MessageSuccessBlock.Text = $"{result.Successes}";
+            
+            //var color = ColorCanvas.SelectedColor;
+            //var messages = PackageGenerator.Create(Strip.Text.ToInt())
+            //    .SetRange(FirstIndex.Text.ToInt(), LastIndex.Text.ToInt())
+            //    .SetColor(ColorCanvas.SelectedColor.Value)
+            //    .BuildPackets();
+
+            //var result = Communicator.Instance.SendMessages(messages.ToArray());
+            //MessageCountBlock.Text = $"{result.Attempts}";
+            //MessageSuccessBlock.Text = $"{result.Successes}";
         }
     }
 }

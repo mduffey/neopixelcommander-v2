@@ -19,9 +19,6 @@ byte buffer[64];
 void loop() {
   int n = RawHID.recv(buffer, 0); // 0 timeout = do not wait
   if (n > 0) {
-    // Various control codes are checked on the first byte.
-    // Maximum possible value for last index, highest strip is around 172, so 200, 210, etc. are control codes.
-    Serial.println(F("Packet received."));
     Process();
   }
 }

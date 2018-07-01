@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Media;
 
-namespace ColorControl
+namespace NeoPixelCommander.Library
 {
     public class PackageGenerator
     {
@@ -37,9 +37,9 @@ namespace ColorControl
             return this;
         }
 
-        public ICollection<byte[]> BuildPackets()
+        public byte[][] BuildPackets()
         {
-            var result = new List<byte[]>();
+            var result = new byte[CountPacketsRequired()][];
             var currentIndex = _startRange;
             for(var i = 0; i < CountPacketsRequired(); i++)
             {
@@ -61,7 +61,7 @@ namespace ColorControl
                 {
                     output[b] = 255; // Send max value as an 'end-of-packet'
                 }
-                result.Add(output);
+                result[i] = output;
             }
             return result;
         }

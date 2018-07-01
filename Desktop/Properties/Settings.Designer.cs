@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace ColorControl.Properties {
+namespace NeoPixelCommander.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]

@@ -1,10 +1,10 @@
-﻿<Window x:Class="ColorControl.MainWindow"
+﻿<Window x:Class="NeoPixelCommander.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:ColorControl"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        xmlns:lightcontrols="clr-namespace:NeoPixelCommander.LightControls"
         mc:Ignorable="d"
         Title="NeoPixel Commander Interface" Height="450" Width="400">
     <Grid>
@@ -33,7 +33,7 @@
             <TextBlock Grid.Column="1" Text="to" VerticalAlignment="Center" HorizontalAlignment="Center" />
             <TextBox x:Name="LastIndex" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Stretch" FontSize="20" Text="4" />
         </Grid>
-        <xctk:ColorCanvas x:Name="ColorCanvas" Grid.Row="2" Grid.ColumnSpan="2" UsingAlphaChannel="False" />
+        <lightcontrols:Moodlight x:Name="Moodlight" Grid.Row="2" Grid.ColumnSpan="2" />
         <Button Grid.Column="0" Grid.Row="3" Content="Clear" Click="Clear_Click" IsEnabled="{Binding ColorCanvas.SelectedColor.HasValue}" />
         <Button Grid.Column="1" Grid.Row="3" Content="Update" Click="Update_Click" IsEnabled="{Binding ColorCanvas.SelectedColor.HasValue}" />
         <TextBlock Grid.Column="0" Grid.Row="4" Text="Messages Sent" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>

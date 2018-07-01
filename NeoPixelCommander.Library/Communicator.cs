@@ -6,16 +6,19 @@ using System.Threading.Tasks;
 using System.Timers;
 using HidLibrary;
 
-namespace ColorControl
+namespace NeoPixelCommander.Library
 {
     public class Communicator
     {
+        private static Communicator _communicator = new Communicator();
+        public static Communicator Instance => _communicator;
+
         private HidDevice _teensy;
 
-        public bool Active => _teensy != null && _teensy.IsConnected && _teensy.IsOpen;
+        public bool Active { get; private set; }
 
         private Timer _refreshTimer;
-        public Communicator()
+        protected Communicator()
         {
             _teensy = GetDevice();
             _refreshTimer = new Timer(200);
@@ -49,6 +52,7 @@ namespace ColorControl
                         device.OpenDevice();
                         device.MonitorDeviceEvents = true;
                         device.Removed += StartReconnect;
+                        Active = true;
                         return device;
                     }
                 }
@@ -59,6 +63,7 @@ namespace ColorControl
 
         private void StartReconnect()
         {
+            Active = false;
             _refreshTimer.Start();
         }
 
@@ -74,7 +79,7 @@ namespace ColorControl
                 int successes = 0;
                 foreach (var message in messages)
                 {
-                    if (_teensy.Write(message, 20))
+                    if (_teensy.FastWrite(message))
                         successes++;
                 }
                 return (messages.Length, successes);
