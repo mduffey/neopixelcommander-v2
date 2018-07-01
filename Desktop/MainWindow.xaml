@@ -1,0 +1,44 @@
+﻿<Window x:Class="ColorControl.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ColorControl"
+        xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
+        mc:Ignorable="d"
+        Title="NeoPixel Commander Interface" Height="450" Width="400">
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition/>
+            <ColumnDefinition/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition Height="6*" />
+            <RowDefinition />
+            <RowDefinition />
+            <RowDefinition />
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Column="0" Grid.Row="0" Text="Strip" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        <TextBlock Grid.Column="0" Grid.Row="1" Text="Index" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="20"/>
+        <TextBox x:Name="Strip" Grid.Column="1" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" FontSize="20" Text="0" />
+        <Grid Grid.Column="1" Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+                <ColumnDefinition/>
+            </Grid.ColumnDefinitions>
+            <TextBox x:Name="FirstIndex" Grid.Column="0" VerticalAlignment="Center" HorizontalAlignment="Stretch" FontSize="20" Text="0" />
+            <TextBlock Grid.Column="1" Text="to" VerticalAlignment="Center" HorizontalAlignment="Center" />
+            <TextBox x:Name="LastIndex" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Stretch" FontSize="20" Text="4" />
+        </Grid>
+        <xctk:ColorCanvas x:Name="ColorCanvas" Grid.Row="2" Grid.ColumnSpan="2" UsingAlphaChannel="False" />
+        <Button Grid.Column="0" Grid.Row="3" Content="Clear" Click="Clear_Click" IsEnabled="{Binding ColorCanvas.SelectedColor.HasValue}" />
+        <Button Grid.Column="1" Grid.Row="3" Content="Update" Click="Update_Click" IsEnabled="{Binding ColorCanvas.SelectedColor.HasValue}" />
+        <TextBlock Grid.Column="0" Grid.Row="4" Text="Messages Sent" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+        <TextBlock x:Name="MessageCountBlock" Grid.Column="1" Grid.Row="4" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+        <TextBlock Grid.Column="0" Grid.Row="5" Text="Messages Succeeded" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+        <TextBlock x:Name="MessageSuccessBlock" Grid.Column="1" Grid.Row="5" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"/>
+    </Grid>
+</Window>
