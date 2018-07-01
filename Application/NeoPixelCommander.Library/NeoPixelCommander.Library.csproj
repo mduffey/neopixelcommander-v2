@@ -32,7 +32,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="HidLibrary, Version=3.2.46.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\Desktop\packages\hidlibrary.3.2.46.0\lib\HidLibrary.dll</HintPath>
+      <HintPath>..\packages\hidlibrary.3.2.46.0\lib\HidLibrary.dll</HintPath>
     </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="System" />
@@ -51,7 +51,6 @@
     <Compile Include="IColorManager.cs" />
     <Compile Include="Communicator.cs" />
     <Compile Include="LEDs.cs" />
-    <Compile Include="PackageGenerator.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -22,11 +22,13 @@ public static class HidExtension
         static internal extern bool ReadFile(IntPtr hFile, IntPtr lpBuffer, uint nNumberOfBytesToRead, out uint lpNumberOfBytesRead, [In] ref System.Threading.NativeOverlapped lpOverlapped);
 
 
-        public static bool FastWrite(this HidLibrary.HidDevice device, byte[] outputBuffer)
+        public static bool FastWrite(this HidLibrary.HidDevice device, byte[] buffer)
         {
             try
             {
                 uint bytesWritten;
+                var outputBuffer = new byte[device.Capabilities.InputReportByteLength];
+                Array.Copy(buffer, outputBuffer, Math.Min(buffer.Length, device.Capabilities.InputReportByteLength));
                 var overlapped = new NativeOverlapped();
                 if (WriteFile(device.Handle, outputBuffer, (uint)outputBuffer.Length, out bytesWritten, ref overlapped))
                     return true;
@@ -42,8 +44,10 @@ public static class HidExtension
         {
             try
             {
+                var buffer = new byte[inputBuffer.Length];
+                Array.Copy(inputBuffer, buffer, buffer.Length);
                 uint bytesRead;
-                if (ReadFile(device.Handle, inputBuffer, (uint)inputBuffer.Length, out bytesRead, IntPtr.Zero))
+                if (ReadFile(device.Handle, buffer, (uint)inputBuffer.Length, out bytesRead, IntPtr.Zero))
                 {
                     return ReadStatus.Success;
                 }

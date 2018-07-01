@@ -31,9 +31,7 @@ namespace NeoPixelCommander
 
         private void Clear_Click(object sender, RoutedEventArgs e)
         {
-            byte[] bytes = new byte[65];
-            bytes[1] = 200;
-            Communicator.Instance.SendMessage(bytes);
+            LEDs.SendUniversal(Colors.Black);
         }
 
         private void Update_Click(object sender, RoutedEventArgs e)

@@ -69,22 +69,9 @@ namespace NeoPixelCommander.Library
 
         public bool SendMessage(byte[] message)
         {
-            return Active && _teensy.Write(message, 20);
-        }
-
-        public (int Attempts, int Successes) SendMessages(params byte[][] messages)
-        {
-            if (Active)
-            {
-                int successes = 0;
-                foreach (var message in messages)
-                {
-                    if (_teensy.FastWrite(message))
-                        successes++;
-                }
-                return (messages.Length, successes);
-            }
-            return (0, 0);
+            return Active 
+                //&& _teensy.Write(message);
+                && _teensy.FastWrite(message);
         }
     }
 }

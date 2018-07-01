@@ -14,7 +14,7 @@ namespace NeoPixelCommander.Library.ColorManagers
         public Moodlight()
         {
             _timer = new Timer();
-            _timer.Interval = 25;
+            _timer.Interval = 15;
             _intensity = 255;
             _timer.Elapsed += (sender, e) => 
             {
@@ -27,18 +27,20 @@ namespace NeoPixelCommander.Library.ColorManagers
                 {
                     color = _static.Process();
                 }
-                foreach(var strip in LEDs.Counts.Keys)
-                {
-                    Communicator.Instance.SendMessages(
-                        PackageGenerator.Create((int)strip)
-                            .SetColor(color)
-                            .SetRange(0, LEDs.Counts[strip])
-                            .BuildPackets());
-                }
+                LEDs.SendUniversal(color);
             };
         }
-        public int ChangeRate { get; set; } = 50;
-        public int Intensity { get => _intensity; set => _intensity = Math.Max(255, value); }
+        public int ChangeRate { get; set; } = 5;
+        public int Intensity
+        {
+            get => _intensity;
+            set
+            {
+                _intensity = value > 255
+                    ? 255
+                    : Math.Max(1, value);
+            }
+        }
         public bool IsDynamic { get; set; } = false;
         public void Start()
         {
@@ -98,14 +100,14 @@ namespace NeoPixelCommander.Library.ColorManagers
                     return 0;
                 if (target > current)
                 {
-                    if (target > current + 8)
+                    if (target > current + changeRate)
                     {
-                        return current + 8;
+                        return current + changeRate;
                     }
                     return target;
                 }
-                if (target < current - 8)
-                    return current - 8;
+                if (target < current - changeRate)
+                    return current - changeRate;
                 return target;
             }
         }
