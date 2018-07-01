@@ -1,0 +1,16 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:NeoPixelCommander.DataTemplates"
+                    xmlns:control="clr-namespace:NeoPixelCommander.ViewModel">
+    <DataTemplate DataType="{x:Type control:MoodlightViewModel}">
+        <StackPanel>
+            <TextBlock Text="Color Intensity" Margin="0,5,0,0" />
+            <Slider x:Name="Intensity" Value="{Binding Intensity}" Margin="0,5,0,0" Maximum="255" Minimum="50" SmallChange="5"/>
+            <TextBlock Text="Rate of Change" Margin="0,10,0,0" />
+            <Slider x:Name="ChangeRate" Value="{Binding ChangeRate}" Margin="0,5,0,0" TickFrequency="2" SmallChange="1" Minimum="1" Maximum="8" />
+            <TextBlock Text="Interval" Margin="0,10,0,0" />
+            <Slider x:Name="Interval" Value="{Binding Interval}" Margin="0,5,0,0" TickFrequency="2" SmallChange="20" Minimum="10" Maximum="250" />
+            <CheckBox x:Name="Dynamic" IsChecked="{Binding Dynamic}" Content="Dynamic (randomized colors)" Margin="0,10,0,0" />
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

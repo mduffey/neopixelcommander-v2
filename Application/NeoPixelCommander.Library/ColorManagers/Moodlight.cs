@@ -8,20 +8,21 @@ namespace NeoPixelCommander.Library.ColorManagers
     public class Moodlight : IColorManager
     {
         private Timer _timer;
-        private int _intensity;
+        private int _intensity, _changeRate, _interval;
         private Dynamic _dynamic = new Dynamic();
         private Static _static = new Static();
         public Moodlight()
         {
             _timer = new Timer();
-            _timer.Interval = 15;
             _intensity = 255;
+            _changeRate = 4;
+            _interval = 25;
             _timer.Elapsed += (sender, e) => 
             {
                 Color color;
                 if (IsDynamic)
                 {
-                    color = _dynamic.Process(_intensity, ChangeRate);
+                    color = _dynamic.Process(_intensity, _changeRate);
                 }
                 else
                 {
@@ -30,20 +31,51 @@ namespace NeoPixelCommander.Library.ColorManagers
                 LEDs.SendUniversal(color);
             };
         }
-        public int ChangeRate { get; set; } = 5;
         public int Intensity
         {
             get => _intensity;
             set
             {
-                _intensity = value > 255
-                    ? 255
-                    : Math.Max(1, value);
+                var actual = Math.Min(255, value);
+                if (actual > 0 && actual != _intensity)
+                {
+                    _intensity = actual;
+                }
             }
         }
+        
+        public int Interval
+        {
+            get => _interval;
+            set
+            {
+                var actual = Math.Min(250, value);
+                if (actual > 0 && actual != _interval)
+                {
+                    _interval = actual;
+                    _timer.Interval = _interval;
+                }
+            }
+        }
+
+        public int ChangeRate
+        {
+            get => _changeRate;
+            set
+            {
+                var actual = Math.Min(8, value);
+                if (actual > 0 && actual != _changeRate)
+                {
+                    _changeRate = actual;
+                }
+            }
+        }
+
         public bool IsDynamic { get; set; } = false;
+
         public void Start()
         {
+            _timer.Interval = _interval;
             _timer.Start();
         }
 
