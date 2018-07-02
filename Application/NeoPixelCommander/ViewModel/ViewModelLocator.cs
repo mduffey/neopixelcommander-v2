@@ -45,6 +45,7 @@ namespace NeoPixelCommander.ViewModel
             SimpleIoc.Default.Register<MainViewModel>();
             SimpleIoc.Default.Register<ILightManager>(() => new MoodlightViewModel(), nameof(MoodlightViewModel));
             SimpleIoc.Default.Register<ILightManager>(() => new SingleColorViewModel(), nameof(SingleColorViewModel));
+            SimpleIoc.Default.Register<ILightManager>(() => new GradientViewModel(), nameof(GradientViewModel));
             SimpleIoc.Default.Register(() => SimpleIoc.Default.GetAllInstances<ILightManager>());
         }
 

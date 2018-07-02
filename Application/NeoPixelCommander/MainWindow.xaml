@@ -12,13 +12,14 @@
             <ResourceDictionary.MergedDictionaries>
                 <ResourceDictionary Source="DataTemplates\Moodlight.xaml"/>
                 <ResourceDictionary Source="DataTemplates\SingleColor.xaml"/>
+                <ResourceDictionary Source="DataTemplates\Gradient.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition/>
-            <RowDefinition/>
+            <RowDefinition Height="2*"/>
         </Grid.RowDefinitions>
         <Grid>
             <Grid.ColumnDefinitions>

@@ -1,0 +1,22 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:NeoPixelCommander.DataTemplates"
+                    xmlns:control="clr-namespace:NeoPixelCommander.ViewModel"
+                    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit">
+    <DataTemplate DataType="{x:Type control:GradientViewModel}">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition />
+            </Grid.RowDefinitions>
+            <TextBlock Text="Start Color" />
+            <xctk:ColorPicker Grid.Column="1" SelectedColor="{Binding StartColor}" />
+            <TextBlock Grid.Row="1" Text="End Color" />
+            <xctk:ColorPicker Grid.Row="1" Grid.Column="1" SelectedColor="{Binding StopColor}" />
+        </Grid>
+    </DataTemplate>
+</ResourceDictionary>

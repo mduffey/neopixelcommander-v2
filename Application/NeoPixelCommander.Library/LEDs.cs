@@ -50,6 +50,15 @@ namespace NeoPixelCommander.Library
             Blue = blue;
         }
 
+        public RangeMessage(Strip strip, byte index, Color color)
+        {
+            var position = index << 2;
+            Position = (byte)(position | (int)strip);
+            Red = color.R;
+            Green = color.G;
+            Blue = color.B;
+        }
+
         public byte Position { get; }
         public byte Red { get; }
         public byte Green { get; }
@@ -58,7 +67,7 @@ namespace NeoPixelCommander.Library
 
     public static class LEDs
     {
-        
+
         private static Dictionary<Strip, int> _counts = new Dictionary<Strip, int>
         {
             {Strip.Left, 20 },
@@ -68,7 +77,7 @@ namespace NeoPixelCommander.Library
         };
 
         public static Dictionary<Strip, int> Counts => _counts;
-        
+
         // Note: all messages define an initial byte with a value of 0, as it's swallowed by...something. Appears to be a standard
         // HID thing, as the Teensy reports being able to receive 65 byte packets, even though we can only send 64.
         public static bool SendUniversal(Color color)
@@ -82,32 +91,107 @@ namespace NeoPixelCommander.Library
             return Communicator.Instance.SendMessage(bytes);
         }
 
+        public static void SendGradient(Color first, Color second)
+        {
+            var messages = GetLeft(first, second).Union(GetRight(first, second)).ToList();
+            SendRange(messages);
+        }
+
+        private static ICollection<RangeMessage> GetLeft(Color first, Color second)
+        {
+            var messages = new List<RangeMessage>();
+            var rDiff = (second.R - first.R) / 2d;
+            var gDiff = (second.G - first.G) / 2d;
+            var bDiff = (second.B - first.B) / 2d;
+
+            var actualSecond = new Color
+            {
+                R = (byte)(first.R + rDiff),
+                G = (byte)(first.G + gDiff),
+                B = (byte)(first.B + bDiff)
+            };
+            var stepR = rDiff / Counts[Strip.Left];
+            var stepG = gDiff / Counts[Strip.Left];
+            var stepB = bDiff / Counts[Strip.Left];
+
+            messages.Add(new RangeMessage(Strip.Left, (byte)(Counts[Strip.Left] - 1), first));
+            messages.Add(new RangeMessage(Strip.Left, 0, actualSecond));
+            for (var i = Counts[Strip.Left] - 2; i > 0; i--)
+            {
+                messages.Add(new RangeMessage(Strip.Left,
+                    (byte)i,
+                    (byte)(first.R + Convert.ToInt16(Math.Round(stepR * (Counts[Strip.Left] - i), 0))),
+                    (byte)(first.G + Convert.ToInt16(Math.Round(stepG * (Counts[Strip.Left] - i), 0))),
+                    (byte)(first.B + Convert.ToInt16(Math.Round(stepB * (Counts[Strip.Left] - i), 0)))));
+            }
+            return messages;
+        }
+
+        private static ICollection<RangeMessage> GetRight(Color first, Color second)
+        {
+            var messages = new List<RangeMessage>();
+            var rDiff = (second.R - first.R) / 2d;
+            var gDiff = (second.G - first.G) / 2d;
+            var bDiff = (second.B - first.B) / 2d;
+
+            var actualFirst = new Color
+            {
+                R = (byte)(second.R + rDiff),
+                G = (byte)(second.G + gDiff),
+                B = (byte)(second.B + bDiff)
+            };
+            var stepR = rDiff / Counts[Strip.Right];
+            var stepG = gDiff / Counts[Strip.Right];
+            var stepB = bDiff / Counts[Strip.Right];
+
+            messages.Add(new RangeMessage(Strip.Right, (byte)(Counts[Strip.Right] - 1), actualFirst));
+            messages.Add(new RangeMessage(Strip.Right, 0, second));
+            for (var i = Counts[Strip.Left] - 2; i > 0; i--)
+            {
+                messages.Add(new RangeMessage(Strip.Right,
+                    (byte)i,
+                    (byte)(actualFirst.R + Convert.ToInt16(Math.Round(stepR * (Counts[Strip.Right] - i), 0))),
+                    (byte)(actualFirst.G + Convert.ToInt16(Math.Round(stepG * (Counts[Strip.Right] - i), 0))),
+                    (byte)(actualFirst.B + Convert.ToInt16(Math.Round(stepB * (Counts[Strip.Right] - i), 0)))));
+            }
+            return messages;
+        }
+
+        private static int GetDifference(byte first, byte second, int count)
+        {
+            if (first == second)
+                return 0;
+            return Math.Min((first - second) / count, 1);
+        }
+
+
+
 
         public static void SendRange(ICollection<RangeMessage> rangeMessages)
         {
             int count = 0;
             var bytes = new byte[65];
             bytes[0] = 0;
-            foreach(var message in rangeMessages)
+            bytes[1] = (byte)MessageType.Range;
+            foreach (var message in rangeMessages)
             {
-                bytes[count * 4 + 1] = message.Position;
-                bytes[count * 4 + 2] = message.Red;
-                bytes[count * 4 + 3] = message.Green;
-                bytes[count * 4 + 4] = message.Blue;
+                bytes[count * 4 + 2] = message.Position;
+                bytes[count * 4 + 3] = message.Red;
+                bytes[count * 4 + 4] = message.Green;
+                bytes[count * 4 + 5] = message.Blue;
                 count++;
-                if (count == 16)
+                if (count == 15)
                 {
                     Communicator.Instance.SendMessage(bytes);
                     count = 0;
                 }
             }
-            if (count < 16)
+            if (count != 0)
             {
                 // Terminator message
                 bytes[count * 4 + 1] = byte.MaxValue;
+                Communicator.Instance.SendMessage(bytes);
             }
         }
     }
-
-    
 }
