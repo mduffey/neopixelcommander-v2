@@ -15,6 +15,7 @@ void setup() {
 }
 
 byte buffer[64];
+int currentLoggingLevel = 0; // 
 
 void loop() {
   int n = RawHID.recv(buffer, 0); // 0 timeout = do not wait

@@ -1,6 +1,9 @@
 using GalaSoft.MvvmLight;
+using Settings = NeoPixelCommander.Properties.Settings;
 using System.Collections.Generic;
 using System.Linq;
+using NeoPixelCommander.ViewModel.LightManagers;
+using NeoPixelCommander.Library;
 
 namespace NeoPixelCommander.ViewModel
 {
@@ -18,22 +21,35 @@ namespace NeoPixelCommander.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
+        private readonly Communicator _communicator;
         private List<ILightManager> _availableManagers;
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
-        public MainViewModel(IEnumerable<ILightManager> managers = null)
+        public MainViewModel(Communicator communicator,IEnumerable<ILightManager> managers = null)
         {
             if (IsInDesignMode)
             {
                 _availableManagers = new List<ILightManager>
                 {
-                    new MoodlightViewModel()
+                    
                 };
             }
             else
             {
+                _communicator = communicator;
                 _availableManagers = managers.ToList();
+                var manager = _availableManagers.FirstOrDefault(m => m.Name == Settings.Default.Main_CurrentManager);
+
+                _selectedManager = manager ?? _availableManagers.First();
+                if (_selectedManager is IActiveLightManager activeLightManager)
+                {
+                    activeLightManager.Start();
+                }
+                _communicator.ActiveChangedEventHandler += (sender, e) =>
+                {
+                    RaisePropertyChanged(nameof(Active));
+                };
             }
         }
 
@@ -45,18 +61,31 @@ namespace NeoPixelCommander.ViewModel
             get => _selectedManager;
             set
             {
-                if (_selectedManager == null || _selectedManager.Name != value.Name)
+                if (_selectedManager.Name != value.Name)
                 {
-                    _selectedManager?.Stop();
+                    if (_selectedManager is IActiveLightManager activeLightManager)
+                    {
+                        activeLightManager.Stop();
+                    }
                     _selectedManager = value;
-                    _selectedManager.Start();
+                    Settings.Default.Main_CurrentManager = value.Name;
+                    if (_selectedManager is IActiveLightManager newActiveLightManager)
+                    {
+                        newActiveLightManager.Start();
+                    }
+                    else if (_selectedManager is IAutomaticLightManager automaticLightManager)
+                    {
+                        automaticLightManager.Start();
+                    }
                     RaisePropertyChanged();
                     RaisePropertyChanged(nameof(CanPause));
                 }
             }
         }
+
+        public bool Active => _communicator.Active;
         
-        public bool CanPause => _selectedManager?.IsActive == true;
+        public bool CanPause => _selectedManager is IActiveLightManager;
 
         private bool _pause;
         public bool Pause
@@ -64,21 +93,19 @@ namespace NeoPixelCommander.ViewModel
             get => _pause;
             set
             {
-                if (_pause != value)
+                if (_pause != value && _selectedManager is IActiveLightManager lightManager)
                 {
                     _pause = value;
                     if (_pause)
                     {
-                        _selectedManager.Stop();
+                        lightManager.Stop();
                     }
                     else
                     {
-                        _selectedManager.Start();
+                        lightManager.Start();
                     }
                 }
             }
         }
-
-        public string Name => "hi";
     }
 }

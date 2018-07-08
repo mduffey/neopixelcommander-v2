@@ -10,9 +10,12 @@
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <ResourceDictionary Source="DataTemplates\Moodlight.xaml"/>
-                <ResourceDictionary Source="DataTemplates\SingleColor.xaml"/>
-                <ResourceDictionary Source="DataTemplates\Gradient.xaml" />
+                <ResourceDictionary Source="DataTemplates\LightManagers\Moodlight.xaml"/>
+                <ResourceDictionary Source="DataTemplates\LightManagers\SingleColor.xaml"/>
+                <ResourceDictionary Source="DataTemplates\LightManagers\Gradient.xaml" />
+                <ResourceDictionary Source="DataTemplates\LightManagers\Off.xaml" />
+                <ResourceDictionary Source="DataTemplates\LightManagers\Manual.xaml" />
+                <ResourceDictionary Source="DataTemplates\Settings.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -27,16 +30,26 @@
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
             <StackPanel>
-                <TextBlock Text="Status" />
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Text="Active" />
+                    <TextBlock Grid.Column="1" Text="{Binding Active}" />
+                </Grid>
                 <ToggleButton Content="Pause" IsChecked="{Binding Pause}" />
             </StackPanel>
-            <ListView Grid.Column="1" ItemsSource="{Binding AvailableManagers}" SelectedItem="{Binding SelectedManager}">
-                <ListView.ItemTemplate>
-                    <DataTemplate>
-                        <TextBlock Text="{Binding Name}"/>
-                    </DataTemplate>
-                </ListView.ItemTemplate>
-            </ListView>
+            <StackPanel Grid.Column="1">
+                <TextBlock Text="Lighting Controls" Style="{StaticResource Label}" />
+                <ListView ItemsSource="{Binding AvailableManagers}" SelectedItem="{Binding SelectedManager}">
+                    <ListView.ItemTemplate>
+                        <DataTemplate>
+                            <TextBlock Text="{Binding Name}"/>
+                        </DataTemplate>
+                    </ListView.ItemTemplate>
+                </ListView>
+            </StackPanel>
         </Grid>
         <ContentPresenter Grid.Row="1" Content="{Binding SelectedManager}" />
     </Grid>

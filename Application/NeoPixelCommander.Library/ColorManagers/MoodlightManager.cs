@@ -5,21 +5,20 @@ using System.Windows.Media;
 
 namespace NeoPixelCommander.Library.ColorManagers
 {
-    public class Moodlight : IColorManager
+    public class MoodlightManager
     {
+        private PackageHandler _packageHandler;
         private Timer _timer;
         private int _intensity, _changeRate, _interval;
         private Dynamic _dynamic = new Dynamic();
-        public Moodlight()
+        public MoodlightManager(PackageHandler packageHandler)
         {
+            _packageHandler = packageHandler;
             _timer = new Timer();
-            _intensity = 255;
-            _changeRate = 4;
-            _interval = 25;
             _timer.Elapsed += (sender, e) => 
             {
                 var color = _dynamic.Process(_intensity, _changeRate);
-                LEDs.SendUniversal(color);
+                _packageHandler.SendUniversal(color);
             };
         }
         public int Intensity
