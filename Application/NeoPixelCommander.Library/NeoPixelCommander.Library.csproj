@@ -45,13 +45,18 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ColorManagers\Moodlight.cs" />
+    <Compile Include="ColorManagers\GradientManager.cs" />
+    <Compile Include="ColorManagers\ManualManager.cs" />
+    <Compile Include="ColorManagers\MoodlightManager.cs" />
     <Compile Include="Enums.cs" />
-    <Compile Include="HidExtension.cs" />
-    <Compile Include="IColorManager.cs" />
+    <Compile Include="Extensions\HidExtension.cs" />
     <Compile Include="Communicator.cs" />
     <Compile Include="LEDs.cs" />
+    <Compile Include="Messages\MessageType.cs" />
+    <Compile Include="Messages\RangeMessage.cs" />
+    <Compile Include="PackageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Settings.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

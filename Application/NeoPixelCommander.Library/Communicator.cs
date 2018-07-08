@@ -5,20 +5,17 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Timers;
 using HidLibrary;
+using NeoPixelCommander.Library.Extensions;
 
 namespace NeoPixelCommander.Library
 {
     public class Communicator
     {
-        private static Communicator _communicator = new Communicator();
-        public static Communicator Instance => _communicator;
-
         private HidDevice _teensy;
 
-        public bool Active { get; private set; }
+        public EventHandler ActiveChangedEventHandler;
 
-        private Timer _refreshTimer;
-        protected Communicator()
+        public Communicator()
         {
             _teensy = GetDevice();
             _refreshTimer = new Timer(200);
@@ -32,9 +29,32 @@ namespace NeoPixelCommander.Library
             {
                 StartReconnect();
             }
-            
         }
 
+        private bool _active;
+        public bool Active
+        {
+            get => _active;
+            private set
+            {
+                if (_active != value)
+                {
+                    _active = value;
+                    ActiveChangedEventHandler?.Invoke(this, new EventArgs());
+                }
+            }
+        }
+
+        public bool SendMessage(byte[] message)
+        {
+            return Active
+                // Use the standard one when there are any issues to debug. Otherwise FastWrite uses about 1/20th the processing power.
+                //&& _teensy.Write(message);
+                && _teensy.FastWrite(message);
+        }
+
+        private Timer _refreshTimer;
+        
         private HidDevice GetDevice()
         {
             var devices = HidDevices.Enumerate().ToList();
@@ -65,13 +85,6 @@ namespace NeoPixelCommander.Library
         {
             Active = false;
             _refreshTimer.Start();
-        }
-
-        public bool SendMessage(byte[] message)
-        {
-            return Active 
-                //&& _teensy.Write(message);
-                && _teensy.FastWrite(message);
         }
     }
 }

@@ -16,6 +16,9 @@ using GalaSoft.MvvmLight;
 using GalaSoft.MvvmLight.Ioc;
 using CommonServiceLocator;
 using System.Collections.Generic;
+using NeoPixelCommander.ViewModel.LightManagers;
+using NeoPixelCommander.Library;
+using NeoPixelCommander.Library.ColorManagers;
 
 namespace NeoPixelCommander.ViewModel
 {
@@ -42,11 +45,14 @@ namespace NeoPixelCommander.ViewModel
             ////    // Create run time view services and models
             ////    SimpleIoc.Default.Register<IDataService, DataService>();
             ////}
+            SimpleIoc.Default.Register<Communicator>();
+            SimpleIoc.Default.Register<PackageHandler>();
+            SimpleIoc.Default.Register<GradientManager>();
+            SimpleIoc.Default.Register<MoodlightManager>();
+            SimpleIoc.Default.Register<ManualManager>();
             SimpleIoc.Default.Register<MainViewModel>();
-            SimpleIoc.Default.Register<ILightManager>(() => new MoodlightViewModel(), nameof(MoodlightViewModel));
-            SimpleIoc.Default.Register<ILightManager>(() => new SingleColorViewModel(), nameof(SingleColorViewModel));
-            SimpleIoc.Default.Register<ILightManager>(() => new GradientViewModel(), nameof(GradientViewModel));
-            SimpleIoc.Default.Register(() => SimpleIoc.Default.GetAllInstances<ILightManager>());
+
+            WireUpManagerViewModels();
         }
 
         public MainViewModel Main
@@ -60,6 +66,19 @@ namespace NeoPixelCommander.ViewModel
         public static void Cleanup()
         {
             // TODO Clear the ViewModels
+        }
+
+        private void WireUpManagerViewModels()
+        {
+            SimpleIoc.Default.Register<IEnumerable<ILightManager>>(() => 
+                new List<ILightManager>
+                {
+                    new OffViewModel(SimpleIoc.Default.GetInstance<PackageHandler>()),
+                    new MoodlightViewModel(SimpleIoc.Default.GetInstance<MoodlightManager>()),
+                    new SingleColorViewModel(SimpleIoc.Default.GetInstance<PackageHandler>()),
+                    new GradientViewModel(SimpleIoc.Default.GetInstance<GradientManager>()),
+                    new ManualViewModel(SimpleIoc.Default.GetInstance<ManualManager>())
+                });
         }
     }
 }

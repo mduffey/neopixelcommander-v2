@@ -7,9 +7,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using static HidLibrary.HidDeviceData;
 
-namespace NeoPixelCommander.Library
+namespace NeoPixelCommander.Library.Extensions
 {
-public static class HidExtension
+    public static class HidExtension
     {
         // Thanks! https://github.com/mikeobrien/HidLibrary/issues/11#issuecomment-255485213
         [DllImport("kernel32.dll", SetLastError = true)]

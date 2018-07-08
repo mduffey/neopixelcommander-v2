@@ -22,5 +22,65 @@ namespace NeoPixelCommander.Properties {
                 return defaultInstance;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("25")]
+        public int Moodlight_Interval {
+            get {
+                return ((int)(this["Moodlight_Interval"]));
+            }
+            set {
+                this["Moodlight_Interval"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int Moodlight_ChangeRate {
+            get {
+                return ((int)(this["Moodlight_ChangeRate"]));
+            }
+            set {
+                this["Moodlight_ChangeRate"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("255")]
+        public int Moodlight_Intensity {
+            get {
+                return ((int)(this["Moodlight_Intensity"]));
+            }
+            set {
+                this["Moodlight_Intensity"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Moodlight")]
+        public string Main_CurrentManager {
+            get {
+                return ((string)(this["Main_CurrentManager"]));
+            }
+            set {
+                this["Main_CurrentManager"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("Red")]
+        public global::System.Drawing.Color SingleColor_Color {
+            get {
+                return ((global::System.Drawing.Color)(this["SingleColor_Color"]));
+            }
+            set {
+                this["SingleColor_Color"] = value;
+            }
+        }
     }
 }
