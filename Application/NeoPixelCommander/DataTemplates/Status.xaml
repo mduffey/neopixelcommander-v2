@@ -1,0 +1,32 @@
+﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:NeoPixelCommander.DataTemplates"
+                    xmlns:control="clr-namespace:NeoPixelCommander.ViewModel"
+                    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit">
+    <DataTemplate DataType="{x:Type control:StatusViewModel}">
+        <StackPanel>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <TextBlock Style="{StaticResource Label}" Text="Status" />
+                <TextBlock Grid.Column="1" FontSize="16" Text="{Binding Availability}" />
+            </Grid>
+            <TextBlock Style="{StaticResource Label}" Text="Device Logging" />
+            <ListView ItemsSource="{Binding AvailableLogLevels}" SelectedItem="{Binding LogLevel}">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <RadioButton Content="{Binding ., Converter={StaticResource EnumToStringConverter}}">
+                            <RadioButton.IsChecked>
+                                <Binding Path="IsSelected" 
+                                         RelativeSource="{RelativeSource AncestorType=ListViewItem}"
+                                         Mode="TwoWay" />
+                            </RadioButton.IsChecked>
+                        </RadioButton>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
+        </StackPanel>
+    </DataTemplate>
+</ResourceDictionary>

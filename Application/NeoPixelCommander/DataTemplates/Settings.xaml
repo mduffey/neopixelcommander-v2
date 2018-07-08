@@ -1,9 +1,0 @@
-﻿<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:local="clr-namespace:NeoPixelCommander.DataTemplates"
-                    xmlns:control="clr-namespace:NeoPixelCommander.ViewModel"
-                    xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit">
-    <DataTemplate DataType="{x:Type control:SettingsViewModel}">
-        <TextBlock Foreground="DarkGray" FontSize="24" Text="LEDs Deactivated" HorizontalAlignment="Center" VerticalAlignment="Center" />
-    </DataTemplate>
-</ResourceDictionary>

@@ -56,7 +56,7 @@
     <Compile Include="Messages\RangeMessage.cs" />
     <Compile Include="PackageHandler.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Settings.cs" />
+    <Compile Include="Status.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

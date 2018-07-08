@@ -1,15 +1,10 @@
-#define LOG_VERBOSE 0
-#define LOG_ACTIONS 10
-#define LOG_UNEXPECTED 20
-#define LOG_NONE 30
-
 void PrintMessage(const __FlashStringHelper* message, int logLevel) {
   if (currentLoggingLevel <= logLevel) {
     Serial.println(message);
   }
 }
 
-void PrintMessageAndValue(const __FlashStringHelper* message, int value, int logLevel) {
+void PrintMessage(const __FlashStringHelper* message, int value, int logLevel) {
   if (currentLoggingLevel <= logLevel) {
     Serial.print(message);
     Serial.println(value);

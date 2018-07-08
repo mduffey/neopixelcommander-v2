@@ -40,25 +40,24 @@ namespace NeoPixelCommander.Library.Extensions
                 return false;
             }
         }
-        public static ReadStatus FastRead(this HidLibrary.HidDevice device, byte[] inputBuffer)
+        public static (ReadStatus Status, byte[] Output) FastRead(this HidLibrary.HidDevice device)
         {
             try
             {
-                var buffer = new byte[inputBuffer.Length];
-                Array.Copy(inputBuffer, buffer, buffer.Length);
+                var data = new byte[device.Capabilities.OutputReportByteLength];
                 uint bytesRead;
-                if (ReadFile(device.Handle, buffer, (uint)inputBuffer.Length, out bytesRead, IntPtr.Zero))
+                if (ReadFile(device.Handle, data, (uint)data.Length, out bytesRead, IntPtr.Zero))
                 {
-                    return ReadStatus.Success;
+                    return (ReadStatus.Success, data);
                 }
                 else
                 {
-                    return ReadStatus.NoDataRead;
+                    return (ReadStatus.NoDataRead, new byte[0]);
                 }
             }
             catch (Exception)
             {
-                return ReadStatus.ReadError;
+                return (ReadStatus.ReadError, new byte[0]);
             }
         }
     }

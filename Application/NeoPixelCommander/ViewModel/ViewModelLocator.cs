@@ -45,13 +45,16 @@ namespace NeoPixelCommander.ViewModel
             ////    // Create run time view services and models
             ////    SimpleIoc.Default.Register<IDataService, DataService>();
             ////}
+            SimpleIoc.Default.Register<Status>();
+            SimpleIoc.Default.Register<IStatus>(() => SimpleIoc.Default.GetInstance<Status>());
+            SimpleIoc.Default.Register<IUpdateStatus>(() => SimpleIoc.Default.GetInstance<Status>());
             SimpleIoc.Default.Register<Communicator>();
             SimpleIoc.Default.Register<PackageHandler>();
             SimpleIoc.Default.Register<GradientManager>();
             SimpleIoc.Default.Register<MoodlightManager>();
             SimpleIoc.Default.Register<ManualManager>();
+            SimpleIoc.Default.Register<StatusViewModel>();
             SimpleIoc.Default.Register<MainViewModel>();
-
             WireUpManagerViewModels();
         }
 

@@ -15,7 +15,7 @@
                 <ResourceDictionary Source="DataTemplates\LightManagers\Gradient.xaml" />
                 <ResourceDictionary Source="DataTemplates\LightManagers\Off.xaml" />
                 <ResourceDictionary Source="DataTemplates\LightManagers\Manual.xaml" />
-                <ResourceDictionary Source="DataTemplates\Settings.xaml" />
+                <ResourceDictionary Source="DataTemplates\Status.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>
     </Window.Resources>
@@ -29,17 +29,7 @@
                 <ColumnDefinition/>
                 <ColumnDefinition/>
             </Grid.ColumnDefinitions>
-            <StackPanel>
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition />
-                        <ColumnDefinition />
-                    </Grid.ColumnDefinitions>
-                    <TextBlock Text="Active" />
-                    <TextBlock Grid.Column="1" Text="{Binding Active}" />
-                </Grid>
-                <ToggleButton Content="Pause" IsChecked="{Binding Pause}" />
-            </StackPanel>
+            <ContentPresenter Content="{Binding Status}" />
             <StackPanel Grid.Column="1">
                 <TextBlock Text="Lighting Controls" Style="{StaticResource Label}" />
                 <ListView ItemsSource="{Binding AvailableManagers}" SelectedItem="{Binding SelectedManager}">

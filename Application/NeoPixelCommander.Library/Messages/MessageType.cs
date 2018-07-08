@@ -25,8 +25,12 @@ namespace NeoPixelCommander.Library.Messages
         /// </summary>
         Gradient = 40,
         /// <summary>
+        /// Requests that the device send a current status report. Currently, that's logging level and whether the device is on.
+        /// </summary>
+        Status = 100,
+        /// <summary>
         /// Update the current settings for how the Teensy operates. For now, adjusts the Serial logging frequency.
         /// </summary>
-        Settings = 200
+        Settings = 110
     }
 }

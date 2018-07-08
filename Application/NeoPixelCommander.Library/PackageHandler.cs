@@ -30,7 +30,14 @@ namespace NeoPixelCommander.Library
         {
             var bytes = CreatePacket(MessageType.Settings);
             bytes[2] = (byte)logLevel;
+            _communicator.GetStatus();
             return _communicator.SendMessage(bytes);
+        }
+
+        // Forces an update of status, for when we alter log level (so we can get the message back immediately).
+        public void GetStatus()
+        {
+            _communicator.GetStatus();
         }
 
         public void SendRange(IEnumerable<RangeMessage> rangeMessages)

@@ -21,12 +21,12 @@ namespace NeoPixelCommander.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
-        private readonly Communicator _communicator;
+        
         private List<ILightManager> _availableManagers;
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
-        public MainViewModel(Communicator communicator,IEnumerable<ILightManager> managers = null)
+        public MainViewModel(StatusViewModel status,IEnumerable<ILightManager> managers = null)
         {
             if (IsInDesignMode)
             {
@@ -37,7 +37,7 @@ namespace NeoPixelCommander.ViewModel
             }
             else
             {
-                _communicator = communicator;
+                
                 _availableManagers = managers.ToList();
                 var manager = _availableManagers.FirstOrDefault(m => m.Name == Settings.Default.Main_CurrentManager);
 
@@ -46,10 +46,7 @@ namespace NeoPixelCommander.ViewModel
                 {
                     activeLightManager.Start();
                 }
-                _communicator.ActiveChangedEventHandler += (sender, e) =>
-                {
-                    RaisePropertyChanged(nameof(Active));
-                };
+                Status = status;
             }
         }
 
@@ -83,7 +80,7 @@ namespace NeoPixelCommander.ViewModel
             }
         }
 
-        public bool Active => _communicator.Active;
+        public StatusViewModel Status { get; }
         
         public bool CanPause => _selectedManager is IActiveLightManager;
 
