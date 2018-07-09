@@ -31,7 +31,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             _timer.AutoReset = false;
             _wiring = new Wiring();
             // Adding two because we'll be giving the verticalSegments the corners, so the top segments need to avoid that space.
-            _horizontalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Top] + 2, _wiring.Width);
+            _horizontalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Top] + 1, _wiring.Width);
             _verticalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Left], _wiring.Height);
         }
 
@@ -61,6 +61,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 }
                 finally
                 {
+                    screenResource.Dispose();
                     _wiring.OutputDuplication.ReleaseFrame();
                 }
 
@@ -92,41 +93,79 @@ namespace NeoPixelCommander.Library.ColorManagers
 
         private void ProcessScreen(SharpDX.DXGI.Resource screenResource)
         {
-            using (var screenTexture2D = screenResource.QueryInterface<Texture2D>())
-                _wiring.Device.ImmediateContext.CopyResource(screenTexture2D, _wiring.Texture);
-            var mapSource = _wiring.Device.ImmediateContext.MapSubresource(_wiring.Texture, 0, MapMode.Read, MapFlags.None);
-            var bytes = new byte[mapSource.RowPitch];
-            Marshal.Copy(mapSource.DataPointer, bytes, 0, mapSource.RowPitch);
-
-            var ptr = mapSource.DataPointer;
-            IntPtr.Add(ptr, _horizontalSegments[0]);
-            var topArray = new int[LEDs.Counts[Strip.Top], 3]; // Adding two to rip out the corners, which are lit up by the side strips.
-            for (var verticalI = 0; verticalI < 100; verticalI++)
+            try
             {
-                var arrayPos = 1;
-                for (var i = _horizontalSegments[1]; i <= _horizontalSegments[_horizontalSegments.Length - 1]; i += 4) // 1 for the declaration and -3 for the check to skip the corners
+                using (var screenTexture2D = screenResource.QueryInterface<Texture2D>())
+                    _wiring.Device.ImmediateContext.CopyResource(screenTexture2D, _wiring.Texture);
+                var mapSource = _wiring.Device.ImmediateContext.MapSubresource(_wiring.Texture, 0, MapMode.Read, MapFlags.None);
+                var bytes = new byte[mapSource.RowPitch];
+                Marshal.Copy(mapSource.DataPointer, bytes, 0, mapSource.RowPitch);
+
+                var topPtr = mapSource.DataPointer;
+                var sidePtr = mapSource.DataPointer;
+                topPtr = IntPtr.Add(topPtr, _horizontalSegments[1]);
+                var topArray = new int[LEDs.Counts[Strip.Top], 3]; // Adding two to rip out the corners, which are lit up by the side strips.
+                var sideArray = new int[LEDs.Counts[Strip.Left], 3];
+                for (var verticalI = 0; verticalI < 100; verticalI++)
                 {
-                    if (i > _horizontalSegments[arrayPos + 1])
+                    var arrayPos = 1;
+                    var linePtr = topPtr;
+                    for (var i = _horizontalSegments[1]; i <= _horizontalSegments[_horizontalSegments.Length - 1]; i += 4) // 1 for the declaration and -3 for the check to skip the corners
+                    {
+                        
+                        if (i > _horizontalSegments[arrayPos + 1])
+                        {
+                            arrayPos++;
+                        }
+                        topArray[arrayPos - 1, 0] += Marshal.ReadByte(linePtr, 2);
+                        topArray[arrayPos - 1, 1] += Marshal.ReadByte(linePtr, 1);
+                        topArray[arrayPos - 1, 2] += Marshal.ReadByte(linePtr);
+                        linePtr = IntPtr.Add(linePtr, 4);
+                    }
+                    topPtr = IntPtr.Add(topPtr, mapSource.RowPitch);
+                }
+                for (var i = 0; i < _wiring.Height; i++)
+                {
+                    var arrayPos = 0;
+                    if (arrayPos < _verticalSegments.Length && i > _verticalSegments[arrayPos + 1])
                     {
                         arrayPos++;
                     }
-                    topArray[arrayPos - 1, 0] += Marshal.ReadByte(ptr, 2);
-                    topArray[arrayPos - 1, 1] += Marshal.ReadByte(ptr, 1);
-                    topArray[arrayPos - 1, 2] += Marshal.ReadByte(ptr);
+                    var linePtr = sidePtr;
+                    for (var horizontalI = 0; horizontalI < 100; horizontalI += 4)
+                    {
+                        sideArray[arrayPos, 0] += Marshal.ReadByte(sidePtr, 2);
+                        sideArray[arrayPos, 1] += Marshal.ReadByte(sidePtr, 1);
+                        sideArray[arrayPos, 2] += Marshal.ReadByte(sidePtr);
+                        linePtr = IntPtr.Add(linePtr, 4);
+                    }
+                    sidePtr = IntPtr.Add(sidePtr, mapSource.RowPitch);
                 }
-                IntPtr.Add(ptr, mapSource.RowPitch);
-            }
-            var messages = new List<RangeMessage>();
-            for (int i = 0; i < LEDs.Counts[Strip.Top]; i++)
-            {
-                messages.Add(new RangeMessage(Strip.Top, (byte)i, new Color
+                var messages = new List<RangeMessage>();
+                for (int i = 0; i < LEDs.Counts[Strip.Top]; i++)
                 {
-                    R = (byte)(topArray[i, 0] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
-                    G = (byte)(topArray[i, 1] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
-                    B = (byte)(topArray[i, 2] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
-                }));
+                    messages.Add(new RangeMessage(Strip.Top, (byte)i, new Color
+                    {
+                        R = (byte)(topArray[i, 0] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
+                        G = (byte)(topArray[i, 1] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
+                        B = (byte)(topArray[i, 2] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
+                    }));
+                }
+                for (int i = 0; i < LEDs.Counts[Strip.Left]; i++)
+                {
+                    messages.Add(new RangeMessage(Strip.Left, (byte)i, new Color
+                    {
+                        R = (byte)(sideArray[i, 0] / ((_verticalSegments[i + 1] - _verticalSegments[i]) / 4) * 100),
+                        G = (byte)(sideArray[i, 1] / ((_verticalSegments[i + 1] - _verticalSegments[i]) / 4) * 100),
+                        B = (byte)(sideArray[i, 2] / ((_verticalSegments[i + 1] - _verticalSegments[i]) / 4) * 100),
+                    }));
+                }
+                _packageHandler.SendRange(messages);
             }
-            _packageHandler.SendRange(messages);
+            finally
+            {
+                _wiring.Device.ImmediateContext.UnmapSubresource(_wiring.Texture, 0);
+            }
         }
         
         
@@ -201,11 +240,12 @@ namespace NeoPixelCommander.Library.ColorManagers
         {
 
             var segment = size / (double)segments;
-            var segmentsArray = new int[segments];
+            var segmentsArray = new int[segments + 1];
             for (int i = 0; i < segmentsArray.Length; i++)
             {
                 segmentsArray[i] = Convert.ToInt32(segment * i) * 4;
             }
+            segmentsArray[segmentsArray.Length - 1] = size * 4;
             return segmentsArray;
         }
     }
