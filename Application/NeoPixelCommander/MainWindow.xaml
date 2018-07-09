@@ -15,6 +15,7 @@
                 <ResourceDictionary Source="DataTemplates\LightManagers\Gradient.xaml" />
                 <ResourceDictionary Source="DataTemplates\LightManagers\Off.xaml" />
                 <ResourceDictionary Source="DataTemplates\LightManagers\Manual.xaml" />
+                <ResourceDictionary Source="DataTemplates\LightManagers\ScreenSampling.xaml" />
                 <ResourceDictionary Source="DataTemplates\Status.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

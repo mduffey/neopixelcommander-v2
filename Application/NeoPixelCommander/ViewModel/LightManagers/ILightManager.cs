@@ -23,8 +23,9 @@ namespace NeoPixelCommander.ViewModel.LightManagers
     /// <summary>
     /// An automatic light manager that actively manages the LEDs (periodically changes their colors).
     /// </summary>
-    public interface IActiveLightManager : IAutomaticLightManager
+    public interface IActiveLightManager : ILightManager
     {
+        void Start();
         void Stop();
     }
 }

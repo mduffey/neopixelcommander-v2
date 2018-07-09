@@ -42,7 +42,7 @@ namespace NeoPixelCommander.ViewModel
                 var manager = _availableManagers.FirstOrDefault(m => m.Name == Settings.Default.Main_CurrentManager);
 
                 _selectedManager = manager ?? _availableManagers.First();
-                if (_selectedManager is IActiveLightManager activeLightManager)
+                if (_selectedManager is IAutomaticLightManager activeLightManager)
                 {
                     activeLightManager.Start();
                 }
@@ -66,11 +66,7 @@ namespace NeoPixelCommander.ViewModel
                     }
                     _selectedManager = value;
                     Settings.Default.Main_CurrentManager = value.Name;
-                    if (_selectedManager is IActiveLightManager newActiveLightManager)
-                    {
-                        newActiveLightManager.Start();
-                    }
-                    else if (_selectedManager is IAutomaticLightManager automaticLightManager)
+                    if (_selectedManager is IAutomaticLightManager automaticLightManager)
                     {
                         automaticLightManager.Start();
                     }

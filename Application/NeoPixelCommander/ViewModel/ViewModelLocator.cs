@@ -52,6 +52,7 @@ namespace NeoPixelCommander.ViewModel
             SimpleIoc.Default.Register<PackageHandler>();
             SimpleIoc.Default.Register<GradientManager>();
             SimpleIoc.Default.Register<MoodlightManager>();
+            SimpleIoc.Default.Register<ScreenSamplingManager>();
             SimpleIoc.Default.Register<ManualManager>();
             SimpleIoc.Default.Register<StatusViewModel>();
             SimpleIoc.Default.Register<MainViewModel>();
@@ -80,7 +81,8 @@ namespace NeoPixelCommander.ViewModel
                     new MoodlightViewModel(SimpleIoc.Default.GetInstance<MoodlightManager>()),
                     new SingleColorViewModel(SimpleIoc.Default.GetInstance<PackageHandler>()),
                     new GradientViewModel(SimpleIoc.Default.GetInstance<GradientManager>()),
-                    new ManualViewModel(SimpleIoc.Default.GetInstance<ManualManager>())
+                    new ManualViewModel(SimpleIoc.Default.GetInstance<ManualManager>()),
+                    new ScreenSamplingViewModel(SimpleIoc.Default.GetInstance<ScreenSamplingManager>())
                 });
         }
     }

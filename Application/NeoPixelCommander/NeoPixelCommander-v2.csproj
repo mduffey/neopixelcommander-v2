@@ -96,6 +96,7 @@
     <Compile Include="Settings.cs" />
     <Compile Include="ViewModel\LightManagers\GradientViewModel.cs" />
     <Compile Include="ViewModel\LightManagers\ILightManager.cs" />
+    <Compile Include="ViewModel\LightManagers\ScreenSamplingViewModel.cs" />
     <Compile Include="ViewModel\MainViewModel.cs" />
     <Compile Include="ViewModel\LightManagers\ManualViewModel.cs" />
     <Compile Include="ViewModel\LightManagers\MoodlightViewModel.cs" />
@@ -103,6 +104,10 @@
     <Compile Include="ViewModel\LightManagers\SingleColorViewModel.cs" />
     <Compile Include="ViewModel\StatusViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
+    <Page Include="DataTemplates\LightManagers\ScreenSampling.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
     <Page Include="DataTemplates\LightManagers\Off.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
