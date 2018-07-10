@@ -8,7 +8,6 @@
             <TextBlock Text="Interval" Margin="0,10,0,0" />
             <Slider x:Name="Interval" Value="{Binding Interval}" Margin="0,5,0,0" TickFrequency="50" SmallChange="50" Minimum="0" Maximum="500" />
             <TextBlock Text="Use the interval to reduce the frequency of polling, if CPU usage is a concern." Margin="0,10,0,0" TextWrapping="Wrap" />
-            <Button Content="Start" Margin="0,20,0,0" Command="{Binding StartCommand}" />
         </StackPanel>
     </DataTemplate>
 </ResourceDictionary>

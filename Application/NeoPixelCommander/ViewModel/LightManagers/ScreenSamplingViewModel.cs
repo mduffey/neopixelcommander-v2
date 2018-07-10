@@ -5,7 +5,7 @@ using System.Windows.Input;
 
 namespace NeoPixelCommander.ViewModel.LightManagers
 {
-    public class ScreenSamplingViewModel : ViewModelBase, ILightManager, IActiveLightManager
+    public class ScreenSamplingViewModel : ViewModelBase, ILightManager, IActiveLightManager, IAutomaticLightManager
     {
         public string Name => "Screen Sampling";
 
@@ -14,7 +14,6 @@ namespace NeoPixelCommander.ViewModel.LightManagers
         public ScreenSamplingViewModel(ScreenSamplingManager screenSamplingManager)
         {
             _screenSamplingManager = screenSamplingManager;
-            StartCommand = new Command((o) => true, (o) => Start());
         }
                 
         public int Interval
@@ -26,8 +25,6 @@ namespace NeoPixelCommander.ViewModel.LightManagers
                 RaisePropertyChanged();
             }
         }
-
-        public ICommand StartCommand { get; }
         
         public void Start()
         {

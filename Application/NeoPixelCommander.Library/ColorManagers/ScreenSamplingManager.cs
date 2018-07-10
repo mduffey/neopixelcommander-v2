@@ -98,7 +98,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 var tasks = new Task<int[,]>[4] 
                 {
                     ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch),
-                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - 100)), mapSource.RowPitch),
+                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - 200)), mapSource.RowPitch),
                     ProcessVertical(mapSource.DataPointer, mapSource.RowPitch),
                     ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - 400), mapSource.RowPitch)
                 };
@@ -204,7 +204,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             {
                 var topPtr = IntPtr.Add(ptr, _horizontalSegments[1] * 4); // Skipping the first segment, which is part of the corner that'll be lit up by the side strips.
                 var array = new int[LEDs.Counts[Strip.Top], 4];
-                for (var verticalI = 0; verticalI < 100; verticalI++)
+                for (var verticalI = 0; verticalI < 200; verticalI++)
                 {
                     var arrayPos = 1;
                     var linePtr = topPtr;
@@ -236,7 +236,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                         sideArrayPos++;
                     }
                     var linePtr = sidePtr;
-                    for (var horizontalI = 0; horizontalI < 100; horizontalI += 4)
+                    for (var horizontalI = 0; horizontalI < 200; horizontalI += 4)
                     {
                         linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos);
                     }

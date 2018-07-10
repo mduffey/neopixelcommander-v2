@@ -5,8 +5,9 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="NeoPixel Commander Interface" Height="450" Width="400"
-        DataContext="{Binding Main, Source={StaticResource Locator}}">
+        Title="NeoPixel Commander Interface" Height="500" Width="400"
+        MinHeight="500"
+        DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
@@ -42,6 +43,6 @@
                 </ListView>
             </StackPanel>
         </Grid>
-        <ContentPresenter Grid.Row="1" Content="{Binding SelectedManager}" />
+        <ContentPresenter Grid.Row="1" Content="{Binding SelectedManager}" Margin="10" />
     </Grid>
 </Window>
