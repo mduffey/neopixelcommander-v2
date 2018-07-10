@@ -202,13 +202,13 @@ namespace NeoPixelCommander.Library.ColorManagers
         {
             return Task.Run(() =>
             {
-                var topPtr = IntPtr.Add(ptr, _horizontalSegments[1]); // Skipping the first segment, which is part of the corner that'll be lit up by the side strips.
+                var topPtr = IntPtr.Add(ptr, _horizontalSegments[1] * 4); // Skipping the first segment, which is part of the corner that'll be lit up by the side strips.
                 var array = new int[LEDs.Counts[Strip.Top], 4];
                 for (var verticalI = 0; verticalI < 100; verticalI++)
                 {
                     var arrayPos = 1;
                     var linePtr = topPtr;
-                    for (var i = _horizontalSegments[1]; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += 4) // 1 for the declaration and -3 for the check to skip the corners
+                    for (var i = _horizontalSegments[1] * 4; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += 4) // 1 for the declaration and -3 for the check to skip the corners
                     {
                         if (i > _horizontalSegments[arrayPos + 1] * 4)
                         {
