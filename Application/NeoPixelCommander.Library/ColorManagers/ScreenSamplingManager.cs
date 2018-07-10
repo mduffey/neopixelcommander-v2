@@ -27,7 +27,7 @@ namespace NeoPixelCommander.Library.ColorManagers
         {
             _packageHandler = packageHandler;
             _wiring = new Wiring();
-            // Adding two because we'll be giving the verticalSegments the corners, so the top segments need to avoid that space.
+            // Adding one because we'll be giving the verticalSegments the corners, so the top segments need to skip the leftmost space.
             _horizontalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Top] + 1, _wiring.Width);
             _verticalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Left], _wiring.Height);
         }
@@ -208,7 +208,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 {
                     var arrayPos = 1;
                     var linePtr = topPtr;
-                    for (var i = _horizontalSegments[1] * 4; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += 4) // 1 for the declaration and -3 for the check to skip the corners
+                    for (var i = _horizontalSegments[1] * 4; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += 4)
                     {
                         if (i > _horizontalSegments[arrayPos + 1] * 4)
                         {
