@@ -5,6 +5,8 @@ using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Media;
 using Device = SharpDX.Direct3D11.Device;
@@ -14,80 +16,73 @@ namespace NeoPixelCommander.Library.ColorManagers
 {
     public class ScreenSamplingManager
     {
-        private readonly Timer _timer;
         private readonly PackageHandler _packageHandler;
-        
         private readonly Wiring _wiring;
-        private bool _stopping;
         private readonly int[] _horizontalSegments;
         private readonly int[] _verticalSegments;
-
+        private Task _task;
+        private bool _running;
 
         public ScreenSamplingManager(PackageHandler packageHandler)
         {
             _packageHandler = packageHandler;
-            _timer = new Timer();
-            _timer.Elapsed += (sender, e) => ProcessFrame();
-            _timer.AutoReset = false;
             _wiring = new Wiring();
             // Adding two because we'll be giving the verticalSegments the corners, so the top segments need to avoid that space.
             _horizontalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Top] + 1, _wiring.Width);
             _verticalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Left], _wiring.Height);
         }
 
-        public void Start(int interval)
+        public int Interval { get; set; }
+
+        public void Start()
         {
-            _stopping = false;
-            _timer.Interval = interval;
-            _timer.Start();
+            _running = true;
+            _task = Task.Run(() => ProcessFrame());
         }
 
         public void Stop()
         {
-            _stopping = true;
+            _running = false;
         }
 
         private void ProcessFrame()
         {
-            try
+            while (_running)
             {
-                (var changes, var screenResource) = GetNextFrame();
                 try
                 {
-                    if (changes)
+                    (var changes, var screenResource) = GetNextFrame();
+                    try
                     {
-                        ProcessScreen(screenResource);
+                        if (changes)
+                        {
+                            ProcessScreen(screenResource);
+                        }
                     }
-                }
-                finally
-                {
-                    screenResource.Dispose();
-                    _wiring.OutputDuplication.ReleaseFrame();
-                }
+                    finally
+                    {
+                        screenResource.Dispose();
+                        _wiring.OutputDuplication.ReleaseFrame();
+                    }
 
-            }
-            // On exception, if it's an expectable type (the output needs to be reacquired, or we ran into the timeout), 
-            // then we just give up on this pass and try again later.
-            catch (SharpDXException e)
-            {
-                if (e.ResultCode.Code != SharpDX.DXGI.ResultCode.WaitTimeout.Result.Code)
+                }
+                // On exception, if it's an expectable type (the output needs to be reacquired, or we ran into the timeout), 
+                // then we just give up on this pass and try again later.
+                catch (SharpDXException e)
                 {
-                    if (e.ResultCode.Code == SharpDX.DXGI.ResultCode.AccessLost.Result.Code)
+                    if (e.ResultCode.Code != SharpDX.DXGI.ResultCode.WaitTimeout.Result.Code)
                     {
-                        _wiring.ReacquireDuplication();
-                    }
-                    else
-                    {
-                        throw;
+                        if (e.ResultCode.Code == SharpDX.DXGI.ResultCode.AccessLost.Result.Code)
+                        {
+                            _wiring.ReacquireDuplication();
+                        }
+                        else
+                        {
+                            throw;
+                        }
                     }
                 }
-            }
-            finally
-            {
-                if (!_stopping)
-                {
-                    _timer.Start();
-                }
+                Thread.Sleep(Interval);
             }
         }
 
@@ -98,68 +93,22 @@ namespace NeoPixelCommander.Library.ColorManagers
                 using (var screenTexture2D = screenResource.QueryInterface<Texture2D>())
                     _wiring.Device.ImmediateContext.CopyResource(screenTexture2D, _wiring.Texture);
                 var mapSource = _wiring.Device.ImmediateContext.MapSubresource(_wiring.Texture, 0, MapMode.Read, MapFlags.None);
-                var bytes = new byte[mapSource.RowPitch];
-                Marshal.Copy(mapSource.DataPointer, bytes, 0, mapSource.RowPitch);
-
-                var topPtr = mapSource.DataPointer;
+                
                 var sidePtr = mapSource.DataPointer;
-                topPtr = IntPtr.Add(topPtr, _horizontalSegments[1]);
-                var topArray = new int[LEDs.Counts[Strip.Top], 3]; // Adding two to rip out the corners, which are lit up by the side strips.
-                var sideArray = new int[LEDs.Counts[Strip.Left], 3];
-                for (var verticalI = 0; verticalI < 100; verticalI++)
+                var tasks = new Task<int[,]>[4] 
                 {
-                    var arrayPos = 1;
-                    var linePtr = topPtr;
-                    for (var i = _horizontalSegments[1]; i <= _horizontalSegments[_horizontalSegments.Length - 1]; i += 4) // 1 for the declaration and -3 for the check to skip the corners
-                    {
-                        
-                        if (i > _horizontalSegments[arrayPos + 1])
-                        {
-                            arrayPos++;
-                        }
-                        topArray[arrayPos - 1, 0] += Marshal.ReadByte(linePtr, 2);
-                        topArray[arrayPos - 1, 1] += Marshal.ReadByte(linePtr, 1);
-                        topArray[arrayPos - 1, 2] += Marshal.ReadByte(linePtr);
-                        linePtr = IntPtr.Add(linePtr, 4);
-                    }
-                    topPtr = IntPtr.Add(topPtr, mapSource.RowPitch);
-                }
-                for (var i = 0; i < _wiring.Height; i++)
-                {
-                    var arrayPos = 0;
-                    if (arrayPos < _verticalSegments.Length && i > _verticalSegments[arrayPos + 1])
-                    {
-                        arrayPos++;
-                    }
-                    var linePtr = sidePtr;
-                    for (var horizontalI = 0; horizontalI < 100; horizontalI += 4)
-                    {
-                        sideArray[arrayPos, 0] += Marshal.ReadByte(sidePtr, 2);
-                        sideArray[arrayPos, 1] += Marshal.ReadByte(sidePtr, 1);
-                        sideArray[arrayPos, 2] += Marshal.ReadByte(sidePtr);
-                        linePtr = IntPtr.Add(linePtr, 4);
-                    }
-                    sidePtr = IntPtr.Add(sidePtr, mapSource.RowPitch);
-                }
+                    ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch),
+                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - 100)), mapSource.RowPitch),
+                    ProcessVertical(mapSource.DataPointer, mapSource.RowPitch),
+                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - 400), mapSource.RowPitch)
+                };
+                Task.WaitAll(tasks);
+                
                 var messages = new List<RangeMessage>();
-                for (int i = 0; i < LEDs.Counts[Strip.Top]; i++)
-                {
-                    messages.Add(new RangeMessage(Strip.Top, (byte)i, new Color
-                    {
-                        R = (byte)(topArray[i, 0] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
-                        G = (byte)(topArray[i, 1] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
-                        B = (byte)(topArray[i, 2] / ((_horizontalSegments[i + 2] - _horizontalSegments[i + 1]) / 4) * 100),
-                    }));
-                }
-                for (int i = 0; i < LEDs.Counts[Strip.Left]; i++)
-                {
-                    messages.Add(new RangeMessage(Strip.Left, (byte)i, new Color
-                    {
-                        R = (byte)(sideArray[i, 0] / ((_verticalSegments[i + 1] - _verticalSegments[i]) / 4) * 100),
-                        G = (byte)(sideArray[i, 1] / ((_verticalSegments[i + 1] - _verticalSegments[i]) / 4) * 100),
-                        B = (byte)(sideArray[i, 2] / ((_verticalSegments[i + 1] - _verticalSegments[i]) / 4) * 100),
-                    }));
-                }
+                messages.AddRange(BuildHorizontalMessages(tasks[0].Result, Strip.Top));
+                messages.AddRange(BuildHorizontalMessages(tasks[1].Result, Strip.Bottom));
+                messages.AddRange(BuildVerticalMessages(tasks[2].Result, Strip.Left));
+                messages.AddRange(BuildVerticalMessages(tasks[3].Result, Strip.Right));
                 _packageHandler.SendRange(messages);
             }
             finally
@@ -167,11 +116,11 @@ namespace NeoPixelCommander.Library.ColorManagers
                 _wiring.Device.ImmediateContext.UnmapSubresource(_wiring.Texture, 0);
             }
         }
-        
-        
+
+
         private (bool Changes, SharpDX.DXGI.Resource ScreenResource) GetNextFrame()
         {
-            _wiring.OutputDuplication.AcquireNextFrame(Convert.ToInt32(_timer.Interval), out OutputDuplicateFrameInformation duplicateFrameInformation, out SharpDX.DXGI.Resource screenResource);
+            _wiring.OutputDuplication.AcquireNextFrame(100, out OutputDuplicateFrameInformation duplicateFrameInformation, out SharpDX.DXGI.Resource screenResource);
             return (duplicateFrameInformation.AccumulatedFrames > 0, screenResource);
         }
 
@@ -243,10 +192,93 @@ namespace NeoPixelCommander.Library.ColorManagers
             var segmentsArray = new int[segments + 1];
             for (int i = 0; i < segmentsArray.Length; i++)
             {
-                segmentsArray[i] = Convert.ToInt32(segment * i) * 4;
+                segmentsArray[i] = Convert.ToInt32(segment * i);
             }
-            segmentsArray[segmentsArray.Length - 1] = size * 4;
+            segmentsArray[segmentsArray.Length - 1] = size;
             return segmentsArray;
+        }
+
+        private Task<int[,]> ProcessHorizontal(IntPtr ptr, int rowPitch)
+        {
+            return Task.Run(() =>
+            {
+                var topPtr = IntPtr.Add(ptr, _horizontalSegments[1]); // Skipping the first segment, which is part of the corner that'll be lit up by the side strips.
+                var array = new int[LEDs.Counts[Strip.Top], 4];
+                for (var verticalI = 0; verticalI < 100; verticalI++)
+                {
+                    var arrayPos = 1;
+                    var linePtr = topPtr;
+                    for (var i = _horizontalSegments[1]; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += 4) // 1 for the declaration and -3 for the check to skip the corners
+                    {
+                        if (i > _horizontalSegments[arrayPos + 1] * 4)
+                        {
+                            arrayPos++;
+                        }
+                        linePtr = LoadArrayAndAdvancePointer(array, linePtr, arrayPos - 1);
+                    }
+                    topPtr = IntPtr.Add(topPtr, rowPitch);
+                }
+                return array;
+            });
+        }
+
+        private Task<int[,]> ProcessVertical(IntPtr ptr, int rowPitch)
+        {
+            return Task.Run(() =>
+            {
+                var sidePtr = ptr;
+                var sideArray = new int[LEDs.Counts[Strip.Left], 4];
+                var sideArrayPos = 0;
+                for (var i = 0; i < _wiring.Height; i++)
+                {
+                    if (sideArrayPos < _verticalSegments.Length && i > _verticalSegments[sideArrayPos + 1])
+                    {
+                        sideArrayPos++;
+                    }
+                    var linePtr = sidePtr;
+                    for (var horizontalI = 0; horizontalI < 100; horizontalI += 4)
+                    {
+                        linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos);
+                    }
+                    sidePtr = IntPtr.Add(sidePtr, rowPitch);
+                }
+                return sideArray;
+            });
+        }
+
+        private IntPtr LoadArrayAndAdvancePointer(int[,] array, IntPtr ptr, int pos)
+        {
+            array[pos, 0] += Marshal.ReadByte(ptr, 2);
+            array[pos, 1] += Marshal.ReadByte(ptr, 1);
+            array[pos, 2] += Marshal.ReadByte(ptr);
+            array[pos, 3]++;
+            return IntPtr.Add(ptr, 4);
+        }
+
+        private IEnumerable<RangeMessage> BuildHorizontalMessages(int[,] array, Strip strip)
+        {
+            for(int i = 0; i < LEDs.Counts[strip]; i++)
+            {
+                yield return new RangeMessage(strip, (byte)i, new Color
+                {
+                    R = (byte)(array[i, 0] / array[i, 3]),
+                    G = (byte)(array[i, 1] / array[i, 3]),
+                    B = (byte)(array[i, 2] / array[i, 3]),
+                });
+            }
+        }
+
+        private IEnumerable<RangeMessage> BuildVerticalMessages(int[,] array, Strip strip)
+        {
+            for (int i = 0; i < LEDs.Counts[strip]; i++)
+            {
+                yield return new RangeMessage(strip, (byte)i, new Color
+                {
+                    R = (byte)(array[LEDs.Counts[strip] - i - 1, 0] / array[i, 3]),
+                    G = (byte)(array[LEDs.Counts[strip] - i - 1, 1] / array[i, 3]),
+                    B = (byte)(array[LEDs.Counts[strip] - i - 1, 2] / array[i, 3]),
+                });
+            }
         }
     }
 }

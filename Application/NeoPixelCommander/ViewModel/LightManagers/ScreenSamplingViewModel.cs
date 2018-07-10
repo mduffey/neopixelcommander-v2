@@ -14,18 +14,15 @@ namespace NeoPixelCommander.ViewModel.LightManagers
         public ScreenSamplingViewModel(ScreenSamplingManager screenSamplingManager)
         {
             _screenSamplingManager = screenSamplingManager;
-            _interval = 50;
             StartCommand = new Command((o) => true, (o) => Start());
         }
-        
-        private int _interval;
-        
+                
         public int Interval
         {
-            get => _interval;
+            get => _screenSamplingManager.Interval;
             set
             {
-                _interval = value;
+                _screenSamplingManager.Interval = value;
                 RaisePropertyChanged();
             }
         }
@@ -34,7 +31,7 @@ namespace NeoPixelCommander.ViewModel.LightManagers
         
         public void Start()
         {
-            _screenSamplingManager.Start(_interval);
+            _screenSamplingManager.Start();
         }
 
         public void Stop()
