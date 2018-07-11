@@ -33,6 +33,7 @@ namespace NeoPixelCommander.Library.ColorManagers
         }
 
         public int Interval { get; set; }
+        public int Depth { get; set; }
 
         public void Start()
         {
@@ -49,6 +50,7 @@ namespace NeoPixelCommander.Library.ColorManagers
         {
             while (_running)
             {
+                var depth = Depth;
                 try
                 {
                     (var changes, var screenResource) = GetNextFrame();
@@ -56,7 +58,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                     {
                         if (changes)
                         {
-                            ProcessScreen(screenResource);
+                            ProcessScreen(screenResource, depth);
                         }
                     }
                     finally
@@ -86,7 +88,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             }
         }
 
-        private void ProcessScreen(SharpDX.DXGI.Resource screenResource)
+        private void ProcessScreen(SharpDX.DXGI.Resource screenResource, int depth)
         {
             try
             {
@@ -97,10 +99,10 @@ namespace NeoPixelCommander.Library.ColorManagers
                 var sidePtr = mapSource.DataPointer;
                 var tasks = new Task<int[,]>[4] 
                 {
-                    ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch),
-                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - 200)), mapSource.RowPitch),
-                    ProcessVertical(mapSource.DataPointer, mapSource.RowPitch),
-                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - 400), mapSource.RowPitch)
+                    ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch, depth),
+                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - depth)), mapSource.RowPitch, depth),
+                    ProcessVertical(mapSource.DataPointer, mapSource.RowPitch, depth),
+                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - depth * 4), mapSource.RowPitch, depth)
                 };
                 Task.WaitAll(tasks);
                 
@@ -120,7 +122,7 @@ namespace NeoPixelCommander.Library.ColorManagers
 
         private (bool Changes, SharpDX.DXGI.Resource ScreenResource) GetNextFrame()
         {
-            _wiring.OutputDuplication.AcquireNextFrame(100, out OutputDuplicateFrameInformation duplicateFrameInformation, out SharpDX.DXGI.Resource screenResource);
+            _wiring.OutputDuplication.AcquireNextFrame(200, out OutputDuplicateFrameInformation duplicateFrameInformation, out SharpDX.DXGI.Resource screenResource);
             return (duplicateFrameInformation.AccumulatedFrames > 0, screenResource);
         }
 
@@ -198,13 +200,13 @@ namespace NeoPixelCommander.Library.ColorManagers
             return segmentsArray;
         }
 
-        private Task<int[,]> ProcessHorizontal(IntPtr ptr, int rowPitch)
+        private Task<int[,]> ProcessHorizontal(IntPtr ptr, int rowPitch, int depth)
         {
             return Task.Run(() =>
             {
                 var topPtr = IntPtr.Add(ptr, _horizontalSegments[1] * 4); // Skipping the first segment, which is part of the corner that'll be lit up by the side strips.
                 var array = new int[LEDs.Counts[Strip.Top], 4];
-                for (var verticalI = 0; verticalI < 200; verticalI++)
+                for (var verticalI = 0; verticalI < depth; verticalI++)
                 {
                     var arrayPos = 1;
                     var linePtr = topPtr;
@@ -222,7 +224,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             });
         }
 
-        private Task<int[,]> ProcessVertical(IntPtr ptr, int rowPitch)
+        private Task<int[,]> ProcessVertical(IntPtr ptr, int rowPitch, int depth)
         {
             return Task.Run(() =>
             {
@@ -236,7 +238,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                         sideArrayPos++;
                     }
                     var linePtr = sidePtr;
-                    for (var horizontalI = 0; horizontalI < 200; horizontalI += 4)
+                    for (var horizontalI = 0; horizontalI < depth; horizontalI += 4)
                     {
                         linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos);
                     }

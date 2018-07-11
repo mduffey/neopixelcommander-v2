@@ -25,7 +25,17 @@ namespace NeoPixelCommander.ViewModel.LightManagers
                 RaisePropertyChanged();
             }
         }
-        
+
+        public int Depth
+        {
+            get => _screenSamplingManager.Depth;
+            set
+            {
+                _screenSamplingManager.Depth = value;
+                RaisePropertyChanged();
+            }
+        }
+
         public void Start()
         {
             _screenSamplingManager.Start();
