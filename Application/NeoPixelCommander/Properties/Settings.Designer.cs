@@ -82,5 +82,29 @@ namespace NeoPixelCommander.Properties {
                 this["SingleColor_Color"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        public int ScreenSampling_Depth {
+            get {
+                return ((int)(this["ScreenSampling_Depth"]));
+            }
+            set {
+                this["ScreenSampling_Depth"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        public int ScreenSampling_Interval {
+            get {
+                return ((int)(this["ScreenSampling_Interval"]));
+            }
+            set {
+                this["ScreenSampling_Interval"] = value;
+            }
+        }
     }
 }
