@@ -109,6 +109,9 @@
     <Compile Include="Converters\InverseBooleanToVisibilityConverter.cs" />
     <Compile Include="Extensions\ColorExtensions.cs" />
     <Compile Include="Settings.cs" />
+    <Compile Include="SettingsWindow.xaml.cs">
+      <DependentUpon>SettingsWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="ViewModel\LightManagers\GradientViewModel.cs" />
     <Compile Include="ViewModel\LightManagers\ILightManager.cs" />
     <Compile Include="ViewModel\LightManagers\ScreenSamplingViewModel.cs" />
@@ -117,6 +120,7 @@
     <Compile Include="ViewModel\LightManagers\MoodlightViewModel.cs" />
     <Compile Include="ViewModel\LightManagers\OffViewModel.cs" />
     <Compile Include="ViewModel\LightManagers\SingleColorViewModel.cs" />
+    <Compile Include="ViewModel\SettingsViewModel.cs" />
     <Compile Include="ViewModel\StatusViewModel.cs" />
     <Compile Include="ViewModel\ViewModelLocator.cs" />
     <Page Include="DataTemplates\LightManagers\ScreenSampling.xaml">
@@ -164,6 +168,10 @@
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="SettingsWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs">

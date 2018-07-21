@@ -67,6 +67,14 @@ namespace NeoPixelCommander.ViewModel
             }
         }
 
+        public SettingsViewModel SettingsViewModel
+        {
+            get
+            {
+                return ServiceLocator.Current.GetInstance<SettingsViewModel>();
+            }
+        }
+
         public static void Cleanup()
         {
             // TODO Clear the ViewModels
