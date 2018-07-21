@@ -18,10 +18,13 @@
       <Value Profile="(Default)">Red</Value>
     </Setting>
     <Setting Name="ScreenSampling_Depth" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">200</Value>
+      <Value Profile="(Default)">100</Value>
     </Setting>
     <Setting Name="ScreenSampling_Interval" Type="System.Int32" Scope="User">
-      <Value Profile="(Default)">0</Value>
+      <Value Profile="(Default)">50</Value>
+    </Setting>
+    <Setting Name="ScreenSampling_Saturation" Type="System.Int32" Scope="User">
+      <Value Profile="(Default)">3</Value>
     </Setting>
   </Settings>
 </SettingsFile>

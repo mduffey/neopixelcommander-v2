@@ -16,6 +16,7 @@ namespace NeoPixelCommander.ViewModel.LightManagers
             _screenSamplingManager = screenSamplingManager;
             _screenSamplingManager.Depth = Settings.Default.ScreenSampling_Depth;
             _screenSamplingManager.Interval = Settings.Default.ScreenSampling_Interval;
+            _screenSamplingManager.Saturation = Settings.Default.ScreenSampling_Saturation;
         }
                 
         public int Interval
@@ -35,6 +36,17 @@ namespace NeoPixelCommander.ViewModel.LightManagers
             set
             {
                 _screenSamplingManager.Depth = value;
+                Settings.Default.ScreenSampling_Depth = value;
+                RaisePropertyChanged();
+            }
+        }
+
+        public int Saturation
+        {
+            get => _screenSamplingManager.Saturation;
+            set
+            {
+                _screenSamplingManager.Saturation = value;
                 Settings.Default.ScreenSampling_Depth = value;
                 RaisePropertyChanged();
             }

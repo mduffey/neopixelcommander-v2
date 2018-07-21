@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:xctk="http://schemas.xceed.com/wpf/xaml/toolkit"
         mc:Ignorable="d"
-        Title="NeoPixel Commander Interface" Height="500" Width="400"
+        Title="NeoPixel Commander Interface" Height="525" Width="400"
         MinHeight="500"
         DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize">
     <Window.Resources>

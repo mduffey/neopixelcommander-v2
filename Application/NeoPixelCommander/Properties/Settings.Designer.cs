@@ -85,7 +85,7 @@ namespace NeoPixelCommander.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("200")]
+        [global::System.Configuration.DefaultSettingValueAttribute("100")]
         public int ScreenSampling_Depth {
             get {
                 return ((int)(this["ScreenSampling_Depth"]));
@@ -97,13 +97,25 @@ namespace NeoPixelCommander.Properties {
         
         [global::System.Configuration.UserScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [global::System.Configuration.DefaultSettingValueAttribute("0")]
+        [global::System.Configuration.DefaultSettingValueAttribute("50")]
         public int ScreenSampling_Interval {
             get {
                 return ((int)(this["ScreenSampling_Interval"]));
             }
             set {
                 this["ScreenSampling_Interval"] = value;
+            }
+        }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("3")]
+        public int ScreenSampling_Saturation {
+            get {
+                return ((int)(this["ScreenSampling_Saturation"]));
+            }
+            set {
+                this["ScreenSampling_Saturation"] = value;
             }
         }
     }

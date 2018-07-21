@@ -34,6 +34,7 @@ namespace NeoPixelCommander.Library.ColorManagers
 
         public int Interval { get; set; }
         public int Depth { get; set; }
+        public int Saturation { get; set; }
 
         public void Start()
         {
@@ -51,6 +52,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             while (_running)
             {
                 var depth = Depth;
+                var saturation = Saturation;
                 try
                 {
                     (var changes, var screenResource) = GetNextFrame();
@@ -58,7 +60,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                     {
                         if (changes)
                         {
-                            ProcessScreen(screenResource, depth);
+                            ProcessScreen(screenResource, depth, saturation);
                         }
                     }
                     finally
@@ -88,7 +90,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             }
         }
 
-        private void ProcessScreen(SharpDX.DXGI.Resource screenResource, int depth)
+        private void ProcessScreen(SharpDX.DXGI.Resource screenResource, int depth, int saturation)
         {
             try
             {
@@ -99,10 +101,10 @@ namespace NeoPixelCommander.Library.ColorManagers
                 var sidePtr = mapSource.DataPointer;
                 var tasks = new Task<int[,]>[4] 
                 {
-                    ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch, depth),
-                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - depth)), mapSource.RowPitch, depth),
-                    ProcessVertical(mapSource.DataPointer, mapSource.RowPitch, depth),
-                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - depth * 4), mapSource.RowPitch, depth)
+                    ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch, depth, saturation),
+                    ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - depth)), mapSource.RowPitch, depth, saturation),
+                    ProcessVertical(mapSource.DataPointer, mapSource.RowPitch, depth, saturation),
+                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - depth * 4), mapSource.RowPitch, depth, saturation)
                 };
                 Task.WaitAll(tasks);
                 
@@ -200,7 +202,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             return segmentsArray;
         }
 
-        private Task<int[,]> ProcessHorizontal(IntPtr ptr, int rowPitch, int depth)
+        private Task<int[,]> ProcessHorizontal(IntPtr ptr, int rowPitch, int depth, int saturation)
         {
             return Task.Run(() =>
             {
@@ -210,13 +212,13 @@ namespace NeoPixelCommander.Library.ColorManagers
                 {
                     var arrayPos = 1;
                     var linePtr = topPtr;
-                    for (var i = _horizontalSegments[1] * 4; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += 4)
+                    for (var i = _horizontalSegments[1] * 4; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += saturation * 4)
                     {
                         if (i > _horizontalSegments[arrayPos + 1] * 4)
                         {
                             arrayPos++;
                         }
-                        linePtr = LoadArrayAndAdvancePointer(array, linePtr, arrayPos - 1);
+                        linePtr = LoadArrayAndAdvancePointer(array, linePtr, arrayPos - 1, saturation);
                     }
                     topPtr = IntPtr.Add(topPtr, rowPitch);
                 }
@@ -224,7 +226,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             });
         }
 
-        private Task<int[,]> ProcessVertical(IntPtr ptr, int rowPitch, int depth)
+        private Task<int[,]> ProcessVertical(IntPtr ptr, int rowPitch, int depth, int saturation)
         {
             return Task.Run(() =>
             {
@@ -238,9 +240,9 @@ namespace NeoPixelCommander.Library.ColorManagers
                         sideArrayPos++;
                     }
                     var linePtr = sidePtr;
-                    for (var horizontalI = 0; horizontalI < depth; horizontalI += 4)
+                    for (var horizontalI = 0; horizontalI < depth; horizontalI += saturation * 4)
                     {
-                        linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos);
+                        linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos, saturation);
                     }
                     sidePtr = IntPtr.Add(sidePtr, rowPitch);
                 }
@@ -248,13 +250,13 @@ namespace NeoPixelCommander.Library.ColorManagers
             });
         }
 
-        private IntPtr LoadArrayAndAdvancePointer(int[,] array, IntPtr ptr, int pos)
+        private IntPtr LoadArrayAndAdvancePointer(int[,] array, IntPtr ptr, int pos, int saturation)
         {
             array[pos, 0] += Marshal.ReadByte(ptr, 2);
             array[pos, 1] += Marshal.ReadByte(ptr, 1);
             array[pos, 2] += Marshal.ReadByte(ptr);
             array[pos, 3]++;
-            return IntPtr.Add(ptr, 4);
+            return IntPtr.Add(ptr, saturation * 4);
         }
 
         private IEnumerable<RangeMessage> BuildHorizontalMessages(int[,] array, Strip strip)
