@@ -233,18 +233,18 @@ namespace NeoPixelCommander.Library.ColorManagers
                 var sidePtr = ptr;
                 var sideArray = new int[LEDs.Counts[Strip.Left], 4];
                 var sideArrayPos = 0;
-                for (var i = 0; i < _wiring.Height; i++)
+                for (var i = 0; i < _wiring.Height; i += saturation)
                 {
                     if (sideArrayPos < _verticalSegments.Length && i > _verticalSegments[sideArrayPos + 1])
                     {
                         sideArrayPos++;
                     }
                     var linePtr = sidePtr;
-                    for (var horizontalI = 0; horizontalI < depth; horizontalI += saturation * 4)
+                    for (var horizontalI = 0; horizontalI < depth; horizontalI += 4)
                     {
-                        linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos, saturation);
+                        linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos, 1);
                     }
-                    sidePtr = IntPtr.Add(sidePtr, rowPitch);
+                    sidePtr = IntPtr.Add(sidePtr, rowPitch * saturation);
                 }
                 return sideArray;
             });

@@ -47,7 +47,7 @@ namespace NeoPixelCommander.ViewModel.LightManagers
             set
             {
                 _screenSamplingManager.Saturation = value;
-                Settings.Default.ScreenSampling_Depth = value;
+                Settings.Default.ScreenSampling_Saturation = value;
                 RaisePropertyChanged();
             }
         }
