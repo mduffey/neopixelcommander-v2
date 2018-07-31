@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NeoPixelCommander.ViewModel.LightManagers;
 using NeoPixelCommander.Library;
+using Microsoft.Win32;
 
 namespace NeoPixelCommander.ViewModel
 {
@@ -21,24 +22,29 @@ namespace NeoPixelCommander.ViewModel
     /// </summary>
     public class MainViewModel : ViewModelBase
     {
-        
-        private List<ILightManager> _availableManagers;
+        private readonly List<ILightManager> _availableManagers;
+        private readonly PackageHandler _packageHandler;
+
         /// <summary>
         /// Initializes a new instance of the MainViewModel class.
         /// </summary>
-        public MainViewModel(StatusViewModel status,IEnumerable<ILightManager> managers = null)
+        public MainViewModel(StatusViewModel status, IEnumerable<ILightManager> managers, PackageHandler packageHandler)
         {
             if (IsInDesignMode)
             {
                 _availableManagers = new List<ILightManager>
                 {
-                    
+
                 };
             }
             else
             {
-                
+
                 _availableManagers = managers.ToList();
+                _packageHandler = packageHandler;
+                SystemEvents.PowerModeChanged += PowerModeChanged;
+                SystemEvents.SessionSwitch += SessionSwitched;
+                SystemEvents.SessionEnded += SessionEnded;
                 var manager = _availableManagers.FirstOrDefault(m => m.Name == Settings.Default.Main_CurrentManager);
 
                 _selectedManager = manager ?? _availableManagers.First();
@@ -47,6 +53,46 @@ namespace NeoPixelCommander.ViewModel
                     activeLightManager.Start();
                 }
                 Status = status;
+            }
+        }
+
+        public override void Cleanup()
+        {
+            base.Cleanup();
+            SystemEvents.PowerModeChanged -= PowerModeChanged;
+            SystemEvents.SessionSwitch -= SessionSwitched;
+        }
+
+        private void SessionEnded(object sender, SessionEndedEventArgs e)
+        {
+            (_selectedManager as IActiveLightManager)?.Stop();
+            _packageHandler.SendUniversal(new System.Windows.Media.Color { R = 0, G = 0, B = 0 });
+        }
+
+        private void SessionSwitched(object sender, SessionSwitchEventArgs e)
+        {
+            var manager = _selectedManager as IActiveLightManager;
+            var autoManager = _selectedManager as IAutomaticLightManager;
+            if (e.Reason == SessionSwitchReason.SessionUnlock)
+            {
+                if (manager != null)
+                {
+                    manager.Start();
+                }
+                else
+                {
+                    autoManager?.Start();
+                }
+            }
+        }
+        
+        private void PowerModeChanged(object sender, PowerModeChangedEventArgs e)
+        {
+            var manager = _selectedManager as IActiveLightManager;
+            if (e.Mode == PowerModes.Suspend)
+            {
+                manager?.Stop();
+                _packageHandler.SendUniversal(new System.Windows.Media.Color { R = 255, G = 20, B = 20 });
             }
         }
 
@@ -77,7 +123,7 @@ namespace NeoPixelCommander.ViewModel
         }
 
         public StatusViewModel Status { get; }
-        
+
         public bool CanPause => _selectedManager is IActiveLightManager;
 
         private bool _pause;

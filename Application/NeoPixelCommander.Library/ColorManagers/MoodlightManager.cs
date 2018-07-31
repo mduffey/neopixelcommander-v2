@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Media;
 
@@ -8,18 +10,13 @@ namespace NeoPixelCommander.Library.ColorManagers
     public class MoodlightManager
     {
         private PackageHandler _packageHandler;
-        private Timer _timer;
+        private Task _task;
+        private bool _running;
         private int _intensity, _changeRate, _interval;
         private Dynamic _dynamic = new Dynamic();
         public MoodlightManager(PackageHandler packageHandler)
         {
             _packageHandler = packageHandler;
-            _timer = new Timer();
-            _timer.Elapsed += (sender, e) => 
-            {
-                var color = _dynamic.Process(_intensity, _changeRate);
-                _packageHandler.SendUniversal(color);
-            };
         }
         public int Intensity
         {
@@ -43,7 +40,6 @@ namespace NeoPixelCommander.Library.ColorManagers
                 if (actual > 0 && actual != _interval)
                 {
                     _interval = actual;
-                    _timer.Interval = _interval;
                 }
             }
         }
@@ -63,13 +59,22 @@ namespace NeoPixelCommander.Library.ColorManagers
 
         public void Start()
         {
-            _timer.Interval = _interval;
-            _timer.Start();
+            _running = true;
+            _task = Task.Run(() =>
+            {
+                while (_running)
+                {
+                    var color = _dynamic.Process(_intensity, _changeRate);
+                    _packageHandler.SendUniversal(color);
+                    Thread.Sleep(_interval);
+                }
+            });
         }
 
         public void Stop()
         {
-            _timer.Stop();
+            _running = false;
+            Task.WaitAll(_task);
         }
 
         private class Dynamic

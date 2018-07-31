@@ -13,16 +13,14 @@ namespace NeoPixelCommander.Library
 {
     public class Communicator
     {
-        private readonly ReaderWriterLockSlim _lock;
         private readonly Timer _refreshTimer;
         private readonly Timer _statusTimer;
         private readonly IUpdateStatus _updateStatus;
         private HidDevice _teensy;
-        
-        
+
+
         public Communicator(IUpdateStatus updateStatus)
         {
-            _lock = new ReaderWriterLockSlim();
             _updateStatus = updateStatus;
             _teensy = GetDevice();
             _refreshTimer = new Timer(200);
@@ -57,20 +55,7 @@ namespace NeoPixelCommander.Library
             return _updateStatus.Availability == Availability.Online
                 // Use the standard one when there are any issues to debug. Otherwise FastWrite uses about 1/20th the processing power.
                 //&& _teensy.Write(message);
-                && Send(message);
-        }
-
-        private bool Send(byte[] message)
-        {
-            _lock.EnterReadLock();
-            try
-            {
-                return _teensy.FastWrite(message);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
+                && _teensy.FastWrite(message);
         }
 
         public void GetStatus()
@@ -81,34 +66,26 @@ namespace NeoPixelCommander.Library
                 var message = new byte[64];
                 message[0] = 0;
                 message[1] = (byte)MessageType.Status;
-                Send(message);
+                _teensy.FastWrite(message);
             }
-            _lock.EnterWriteLock();
-            try
+            var response = _teensy.FastRead();
+            if (response.Status == HidDeviceData.ReadStatus.Success && response.Output[1] == (byte)MessageType.Status)
             {
-                var response = _teensy.FastRead();
-                if (response.Status == HidDeviceData.ReadStatus.Success && response.Output[1] == (byte)MessageType.Status)
+                if (Enum.IsDefined(typeof(Availability), (int)response.Output[2]))
                 {
-                    if (Enum.IsDefined(typeof(Availability), (int)response.Output[2]))
-                    {
-                        _updateStatus.Availability = (Availability)response.Output[2];
-                    }
-                    if (Enum.IsDefined(typeof(LogLevel), (int)response.Output[3]))
-                    {
-                        _updateStatus.LogLevel = (LogLevel)response.Output[3];
-                    }
+                    _updateStatus.Availability = (Availability)response.Output[2];
                 }
-                else
+                if (Enum.IsDefined(typeof(LogLevel), (int)response.Output[3]))
                 {
-                    _updateStatus.Availability = Availability.Unknown;
+                    _updateStatus.LogLevel = (LogLevel)response.Output[3];
                 }
             }
-            finally
+            else
             {
-                _lock.ExitWriteLock();
+                _updateStatus.Availability = Availability.Unknown;
             }
         }
-        
+
         private HidDevice GetDevice()
         {
             var devices = HidDevices.Enumerate().ToList();

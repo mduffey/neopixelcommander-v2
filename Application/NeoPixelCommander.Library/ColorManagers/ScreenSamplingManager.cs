@@ -17,19 +17,15 @@ namespace NeoPixelCommander.Library.ColorManagers
     public class ScreenSamplingManager
     {
         private readonly PackageHandler _packageHandler;
-        private readonly Wiring _wiring;
-        private readonly int[] _horizontalSegments;
-        private readonly int[] _verticalSegments;
+        private int[] _horizontalSegments;
+        private int[] _verticalSegments;
+        private Wiring _wiring;
         private Task _task;
         private bool _running;
 
         public ScreenSamplingManager(PackageHandler packageHandler)
         {
             _packageHandler = packageHandler;
-            _wiring = new Wiring();
-            // Adding one because we'll be giving the verticalSegments the corners, so the top segments need to skip the leftmost space.
-            _horizontalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Top] + 1, _wiring.Width);
-            _verticalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Left], _wiring.Height);
         }
 
         public int Interval { get; set; }
@@ -45,6 +41,9 @@ namespace NeoPixelCommander.Library.ColorManagers
         public void Stop()
         {
             _running = false;
+            Task.WaitAll(_task);
+            _wiring.Dispose();
+            _wiring = null;
         }
 
         private void ProcessFrame()
@@ -55,6 +54,13 @@ namespace NeoPixelCommander.Library.ColorManagers
                 var saturation = Saturation;
                 try
                 {
+                    if (_wiring == null)
+                    {
+                        _wiring = new Wiring();
+                        // Adding one because we'll be giving the verticalSegments the corners, so the top segments need to skip the leftmost space.
+                        _horizontalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Top] + 1, _wiring.Width);
+                        _verticalSegments = CreateSegmentsArray(LEDs.Counts[Strip.Left], _wiring.Height);
+                    }
                     (var changes, var screenResource) = GetNextFrame();
                     try
                     {
@@ -76,11 +82,15 @@ namespace NeoPixelCommander.Library.ColorManagers
                 {
                     if (e.ResultCode.Code != SharpDX.DXGI.ResultCode.WaitTimeout.Result.Code)
                     {
-                        if (e.ResultCode.Code == SharpDX.DXGI.ResultCode.AccessLost.Result.Code)
+                        if (e.ResultCode.Code == SharpDX.DXGI.ResultCode.AccessLost.Result.Code || 
+                            e.ResultCode.Code == SharpDX.DXGI.ResultCode.AccessDenied.Result.Code ||
+                            e.ResultCode.Code == SharpDX.Result.AccessDenied.Result.Code)
+                        // Ignoring access denied, as it should be 'self-curing', and access lost just means we need to renew our duplication.
                         {
-                            _wiring.ReacquireDuplication();
+                            _wiring?.Dispose();
+                            _wiring = null;
                         }
-                        else
+                        else 
                         {
                             throw;
                         }
@@ -97,14 +107,13 @@ namespace NeoPixelCommander.Library.ColorManagers
                 using (var screenTexture2D = screenResource.QueryInterface<Texture2D>())
                     _wiring.Device.ImmediateContext.CopyResource(screenTexture2D, _wiring.Texture);
                 var mapSource = _wiring.Device.ImmediateContext.MapSubresource(_wiring.Texture, 0, MapMode.Read, MapFlags.None);
-                
                 var sidePtr = mapSource.DataPointer;
                 var tasks = new Task<int[,]>[4] 
                 {
                     ProcessHorizontal(mapSource.DataPointer, mapSource.RowPitch, depth, saturation),
                     ProcessHorizontal(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch * (_wiring.Height - depth)), mapSource.RowPitch, depth, saturation),
                     ProcessVertical(mapSource.DataPointer, mapSource.RowPitch, depth, saturation),
-                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, mapSource.RowPitch - depth * 4), mapSource.RowPitch, depth, saturation)
+                    ProcessVertical(IntPtr.Add(mapSource.DataPointer, _wiring.Width * 4 - depth * 4), mapSource.RowPitch, depth, saturation)
                 };
                 Task.WaitAll(tasks);
                 
@@ -113,7 +122,10 @@ namespace NeoPixelCommander.Library.ColorManagers
                 messages.AddRange(BuildHorizontalMessages(tasks[1].Result, Strip.Bottom));
                 messages.AddRange(BuildVerticalMessages(tasks[2].Result, Strip.Left));
                 messages.AddRange(BuildVerticalMessages(tasks[3].Result, Strip.Right));
-                _packageHandler.SendRange(messages);
+                if (_running)
+                {
+                    _packageHandler.SendRange(messages);
+                }
             }
             finally
             {
@@ -131,7 +143,7 @@ namespace NeoPixelCommander.Library.ColorManagers
         /// <summary>
         /// Holds the extra-weird core objects for later disposal.
         /// </summary>
-        private class Wiring
+        private class Wiring: IDisposable
         {
             private readonly Factory1 _factory;
             private readonly Adapter1 _adapter;
@@ -144,7 +156,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 // Only works as long as you're only using one graphics card. So, TODO to change this someday.
                 _adapter = _factory.GetAdapter1(0);
                 // Create device from Adapter
-                Device = new Device(_adapter);
+                Device = new Device(_adapter, DeviceCreationFlags.Debug);
                 // Works only with a single monitor. I'm only using one monitor, so I'm ignoring this. But, TODO.
                 _output = _adapter.GetOutput(0);
                 _output1 = _output.QueryInterface<Output1>();
@@ -166,22 +178,32 @@ namespace NeoPixelCommander.Library.ColorManagers
                 OutputDuplication = _output1.DuplicateOutput(Device);
             }
 
-            ~Wiring()
-            {
-                Texture.Dispose();
-                OutputDuplication.Dispose();
-                _output1.Dispose();
-                _output.Dispose();
-                Device.Dispose();
-                _adapter.Dispose();
-                _factory.Dispose();
-            }
-
             public Device Device { get; }
             public OutputDuplication OutputDuplication { get; private set; }
             public int Height { get; }
             public int Width { get; }
             public Texture2D Texture { get; }
+
+            public void Dispose()
+            {
+                try
+                {
+                    // If there are any errors, that means the items are disposed or not yet newed up. We should be fine moving on.
+                    Texture.Dispose();
+                    OutputDuplication.Dispose();
+                    _output1.ReleaseOwnership();
+                    _output.ReleaseOwnership();
+                    _output1.Dispose();
+                    _output.Dispose();
+                    Device.Dispose();
+                    _adapter.Dispose();
+                    _factory.Dispose();
+                }
+                catch
+                {
+
+                }
+            }
 
             public void ReacquireDuplication()
             {
@@ -210,6 +232,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 var array = new int[LEDs.Counts[Strip.Top], 4];
                 for (var verticalI = 0; verticalI < depth; verticalI++)
                 {
+                    int totalPixels = 0;
                     var arrayPos = 1;
                     var linePtr = topPtr;
                     for (var i = _horizontalSegments[1] * 4; i <= _horizontalSegments[_horizontalSegments.Length - 1] * 4; i += saturation * 4)
@@ -219,6 +242,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                             arrayPos++;
                         }
                         linePtr = LoadArrayAndAdvancePointer(array, linePtr, arrayPos - 1, saturation);
+                        totalPixels += 3;
                     }
                     topPtr = IntPtr.Add(topPtr, rowPitch);
                 }
@@ -240,7 +264,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                         sideArrayPos++;
                     }
                     var linePtr = sidePtr;
-                    for (var horizontalI = 0; horizontalI < depth; horizontalI += 4)
+                    for (var horizontalI = 0; horizontalI < depth * 4; horizontalI += 4)
                     {
                         linePtr = LoadArrayAndAdvancePointer(sideArray, linePtr, sideArrayPos, 1);
                     }
