@@ -7,7 +7,7 @@
         mc:Ignorable="d"
         Title="NeoPixel Commander Interface" Height="525" Width="400"
         MinHeight="500"
-        DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="NoResize">
+        DataContext="{Binding Main, Source={StaticResource Locator}}" ResizeMode="CanMinimize">
     <Window.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>

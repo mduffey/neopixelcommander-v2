@@ -1,8 +1,6 @@
-#include <Adafruit_NeoPixel.h>
-
 #include <stdlib.h> // for malloc and free
 
-
+#include <FastLED.h>
 #define NUM_STRIPS 4
 #define NUM_LEDS_PER_STRIP 43
 #define MESSAGE_RANGE 10  // Specific LEDs
@@ -19,31 +17,15 @@
 #define STATUS_AVAILABLE 200
 #define STATUS_DISABLED 100
 
-Adafruit_NeoPixel strip1;
-Adafruit_NeoPixel strip2;
-Adafruit_NeoPixel strip3;
-Adafruit_NeoPixel strip4;
-Adafruit_NeoPixel* strips[NUM_STRIPS];
+CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
 
 void setup() {
   Serial.begin(9600);
   Serial.println(F("NeoPixel Commander v2"));
-  strip1 = Adafruit_NeoPixel(30, 14, NEO_GRB + NEO_KHZ800);
-  strip2 = Adafruit_NeoPixel(30, 15, NEO_GRB + NEO_KHZ800);
-  strip3 = Adafruit_NeoPixel(20, 16, NEO_GRB + NEO_KHZ800);
-  strip4 = Adafruit_NeoPixel(20, 17, NEO_GRB + NEO_KHZ800);
-  strip1.begin();
-  strip2.begin();
-  strip3.begin();
-  strip4.begin();
-  strip1.show();
-  strip2.show();
-  strip3.show();
-  strip4.show();
-  strips[0] = &strip1;
-  strips[1] = &strip2;
-  strips[2] = &strip3;
-  strips[3] = &strip4;
+  FastLED.addLeds<NEOPIXEL, 16>(leds[0], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 17>(leds[1], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 14>(leds[2], NUM_LEDS_PER_STRIP);
+  FastLED.addLeds<NEOPIXEL, 15>(leds[3], NUM_LEDS_PER_STRIP);
 }
 
 byte buffer[64]; 

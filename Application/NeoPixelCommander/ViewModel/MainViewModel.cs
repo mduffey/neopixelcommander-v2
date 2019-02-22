@@ -92,7 +92,7 @@ namespace NeoPixelCommander.ViewModel
             if (e.Mode == PowerModes.Suspend)
             {
                 manager?.Stop();
-                _packageHandler.SendUniversal(new System.Windows.Media.Color { R = 255, G = 20, B = 20 });
+                _packageHandler.SendUniversal(new System.Windows.Media.Color { R = 20, G = 0, B = 20 });
             }
         }
 

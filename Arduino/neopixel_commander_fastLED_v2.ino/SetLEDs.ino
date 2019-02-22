@@ -17,6 +17,6 @@ void ParsePositionAndUpdateLED(int pos, int red, int green, int blue) {
 }
 
 void UpdateLED(int strip, int led, int red, int green, int blue) {
-  strips[strip]->setPixelColor(led, red, green, blue);
+  leds[strip][led].setRGB(red, green, blue);
   PrintLEDUpdate(strip, led, red, green, blue);
 }

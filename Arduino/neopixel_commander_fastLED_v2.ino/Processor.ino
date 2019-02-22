@@ -52,9 +52,7 @@ void Process() {
       break;
   }
   if (updateLEDs) {
-    for(int i = 0; i < NUM_STRIPS; i++) {
-      strips[i]->show();
-    }
+    FastLED.show();
   }
 }
 
