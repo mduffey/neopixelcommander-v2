@@ -24,16 +24,21 @@ namespace NeoPixelCommander.Library.Extensions
 
         public static bool FastWrite(this HidLibrary.HidDevice device, byte[] buffer)
         {
+            var deviceByteLength = device?.Capabilities.InputReportByteLength ?? 0;
+            var arrayLength = Math.Min(buffer.Length, deviceByteLength);
             try
             {
-                uint bytesWritten;
-                var outputBuffer = new byte[device.Capabilities.InputReportByteLength];
-                Array.Copy(buffer, outputBuffer, Math.Min(buffer.Length, device.Capabilities.InputReportByteLength));
-                var overlapped = new NativeOverlapped();
-                if (WriteFile(device.Handle, outputBuffer, (uint)outputBuffer.Length, out bytesWritten, ref overlapped))
-                    return true;
-                else
-                    return false;
+                if (deviceByteLength > 0)
+                {
+                    var outputBuffer = new byte[device.Capabilities.InputReportByteLength];
+                    Array.Copy(buffer, outputBuffer, Math.Min(buffer.Length, device.Capabilities.InputReportByteLength));
+                    var overlapped = new NativeOverlapped();
+                    if (WriteFile(device.Handle, outputBuffer, (uint) outputBuffer.Length, out _, ref overlapped))
+                    {
+                        return true;
+                    }
+                }
+                return false;
             }
             catch
             {
