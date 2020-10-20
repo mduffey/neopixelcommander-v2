@@ -12,8 +12,8 @@ namespace NeoPixelCommander.Library
     {
         Left = 1,
         Right = 0,
-        Top = 3,
-        Bottom = 2
+        Top = 2,
+        Bottom = 3
     }
 
     public enum LogLevel

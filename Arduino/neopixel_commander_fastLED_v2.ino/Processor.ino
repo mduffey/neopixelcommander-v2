@@ -39,7 +39,7 @@ void Process() {
         outputMessage[2] = currentLoggingLevel;
         PrintMessage(F("Available: "), (int)STATUS_AVAILABLE, LOG_VERBOSE);
         PrintMessage(F("Logging: "), currentLoggingLevel, LOG_VERBOSE);
-        RawHID.send(outputMessage, 100);
+        usb_rawhid_send(outputMessage, 100);
       }
       break;
     case MESSAGE_SETTINGS:
@@ -55,4 +55,3 @@ void Process() {
     FastLED.show();
   }
 }
-

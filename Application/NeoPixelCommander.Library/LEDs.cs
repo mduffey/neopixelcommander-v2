@@ -12,10 +12,10 @@ namespace NeoPixelCommander.Library
     {
         public static IReadOnlyDictionary<Strip, int> Counts => new Dictionary<Strip, int>
         {
-            {Strip.Left, 20 },
-            {Strip.Right, 20 },
-            {Strip.Top, 43 },
-            {Strip.Bottom, 43 },
+            {Strip.Left, 36 },
+            {Strip.Right, 36 },
+            {Strip.Top, 61 },
+            {Strip.Bottom, 61 }
         };
     }
 }
