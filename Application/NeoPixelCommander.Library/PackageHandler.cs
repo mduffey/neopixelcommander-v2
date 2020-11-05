@@ -20,16 +20,16 @@ namespace NeoPixelCommander.Library
         public bool SendUniversal(Color color)
         {
             var bytes = CreatePacket(MessageType.Universal);
-            bytes[2] = color.R;
-            bytes[3] = color.G;
-            bytes[4] = color.B;
+            bytes[1] = color.R;
+            bytes[2] = color.G;
+            bytes[3] = color.B;
             return _communicator.SendMessage(bytes);
         }
 
         public bool SendSettings(LogLevel logLevel)
         {
             var bytes = CreatePacket(MessageType.Settings);
-            bytes[2] = (byte)logLevel;
+            bytes[1] = (byte)logLevel;
             _communicator.GetStatus();
             return _communicator.SendMessage(bytes);
         }
@@ -46,10 +46,10 @@ namespace NeoPixelCommander.Library
             var bytes = CreatePacket(MessageType.Range);
             foreach (var message in rangeMessages)
             {
-                bytes[count * 4 + 2] = message.Position;
-                bytes[count * 4 + 3] = message.Red;
-                bytes[count * 4 + 4] = message.Green;
-                bytes[count * 4 + 5] = message.Blue;
+                bytes[count * 4 + 1] = message.Position;
+                bytes[count * 4 + 2] = message.Red;
+                bytes[count * 4 + 3] = message.Green;
+                bytes[count * 4 + 4] = message.Blue;
                 count++;
                 if (count == 15)
                 {
@@ -61,7 +61,7 @@ namespace NeoPixelCommander.Library
             if (count != 0)
             {
                 // Terminator message
-                bytes[count * 4 + 2] = byte.MaxValue;
+                bytes[count * 4 + 1] = byte.MaxValue;
                 _communicator.SendMessage(bytes);
             }
         }
@@ -73,8 +73,8 @@ namespace NeoPixelCommander.Library
 
         private byte[] CreatePacket(MessageType messageType)
         {
-            var bytes = new byte[65];
-            bytes[0] = 0;
+            var bytes = new byte[64];
+            bytes[0] = (byte)messageType;
             bytes[1] = (byte)messageType;
             // This should be the highest value we can send in a packet, so we preset it
             // with the terminator message.

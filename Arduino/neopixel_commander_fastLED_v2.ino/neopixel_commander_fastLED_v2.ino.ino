@@ -1,39 +1,44 @@
 #include <stdlib.h> // for malloc and free
 
-#include <FastLED.h>
+#include <OctoWS2811.h>
 #define NUM_STRIPS 4
 #define NUM_LEDS_PER_STRIP 61
-#define MESSAGE_RANGE 10  // Specific LEDs
-#define MESSAGE_STRIP 20 // All LEDs on one strip
-#define MESSAGE_UNIVERSAL 30 // All strips, all LEDs
-#define MESSAGE_GRADIENT 40 // Specifies two colors, and the gradient will be managed by the Arduino
-#define MESSAGE_STATUS 100  // Queries current settings, like whether the device is on
-#define MESSAGE_SETTINGS 110 // Updates settings. For now, alters log frequency.
-#define LOG_VERBOSE 10
-#define LOG_ACTIONS 20
-#define LOG_UNEXPECTED 30
-#define LOG_NONE 40
 
-#define STATUS_AVAILABLE 200
-#define STATUS_DISABLED 100
+DMAMEM int displayMemory[NUM_LEDS_PER_STRIP * NUM_STRIPS * 3 / 4];
+int drawingMemory[NUM_LEDS_PER_STRIP * NUM_STRIPS * 3 / 4];
 
-CRGB leds[NUM_STRIPS][NUM_LEDS_PER_STRIP];
+const int config = WS2811_GRB | WS2811_800kHz;
+
+#if defined(__MK20DX256__)
+  OctoWS2811 leds(NUM_LEDS_PER_STRIP, displayMemory, drawingMemory, config);
+#else
+  byte pinList[NUM_STRIPS] = {9, 10, 11, 12};
+  OctoWS2811 leds(NUM_LEDS_PER_STRIP, displayMemory, drawingMemory, config, NUM_STRIPS, pinList);
+#endif
+
+
 
 void setup() {
-  Serial.begin(9600);
-  Serial.println(F("NeoPixel Commander v2"));
-  FastLED.addLeds<NEOPIXEL, 7>(leds[0], NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 8>(leds[1], NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 11>(leds[2], NUM_LEDS_PER_STRIP);
-  FastLED.addLeds<NEOPIXEL, 12>(leds[3], NUM_LEDS_PER_STRIP);
+  leds.begin();
+  leds.show();
 }
 
-byte buffer[64]; 
-int currentLoggingLevel = LOG_VERBOSE;
-
 void loop() {
-  int n = usb_rawhid_recv(buffer, 0); // 0 timeout = do not wait
-  if (n > 0) {
-    Process();
+  if (usb_serial_available() >= 4) {
+     int pos = usb_serial_getchar();
+     int red = usb_serial_getchar();
+     int green = usb_serial_getchar();
+     int blue = usb_serial_getchar();
+     ParsePositionAndUpdateLED(pos, red, green, blue);
   }
+}
+
+void ParsePositionAndUpdateLED(int pos, int red, int green, int blue) {
+  int strip = pos & 3;
+  int led = pos >> 2;
+  UpdateLED(strip, led, red, green, blue);
+}
+
+void UpdateLED(int strip, int led, int red, int green, int blue) {
+  leds.setPixel(led + strip * NUM_LEDS_PER_STRIP, red, green, blue);
 }

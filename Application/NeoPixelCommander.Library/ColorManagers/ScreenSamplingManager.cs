@@ -300,11 +300,18 @@ namespace NeoPixelCommander.Library.ColorManagers
         {
             for (int i = 0; i < LEDs.Counts[strip]; i++)
             {
+                //yield return new RangeMessage(strip, (byte)i, new Color
+                //{
+                //    R = (byte)(array[LEDs.Counts[strip] - i - 1, 0] / array[i, 3]),
+                //    G = (byte)(array[LEDs.Counts[strip] - i - 1, 1] / array[i, 3]),
+                //    B = (byte)(array[LEDs.Counts[strip] - i - 1, 2] / array[i, 3]),
+                //});
+
                 yield return new RangeMessage(strip, (byte)i, new Color
                 {
-                    R = (byte)(array[LEDs.Counts[strip] - i - 1, 0] / array[i, 3]),
-                    G = (byte)(array[LEDs.Counts[strip] - i - 1, 1] / array[i, 3]),
-                    B = (byte)(array[LEDs.Counts[strip] - i - 1, 2] / array[i, 3]),
+                    R = (byte)(array[i, 0] / array[i, 3]),
+                    G = (byte)(array[i, 1] / array[i, 3]),
+                    B = (byte)(array[i, 2] / array[i, 3]),
                 });
             }
         }

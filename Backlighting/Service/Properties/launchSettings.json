@@ -1,0 +1,10 @@
+﻿{
+  "profiles": {
+    "Modern": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "DOTNET_ENVIRONMENT": "Development"
+      }
+    }
+  }
+}

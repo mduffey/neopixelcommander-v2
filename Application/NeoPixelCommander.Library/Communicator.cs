@@ -2,112 +2,149 @@
 using System.Collections.Generic;
 using System.Diagnostics.Eventing.Reader;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Timer = System.Timers.Timer;
-using HidLibrary;
-using NeoPixelCommander.Library.Extensions;
 using NeoPixelCommander.Library.Messages;
 
 namespace NeoPixelCommander.Library
 {
     public class Communicator
     {
+        [DllImport("rawhid.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "#2")]
+        internal static extern int rawhid_open(int max, int vid, int pid, int usage_page, int usage);
+
+        [DllImport("rawhid.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "#3")]
+        internal static extern int rawhid_recv(int num, IntPtr buffer, int length, int timeout);
+
+        [DllImport("rawhid.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "#4")]
+        internal static extern int rawhid_send(int num, IntPtr buffer, int length, int timeout);
+
+        [DllImport("rawhid.dll", CallingConvention = CallingConvention.StdCall, EntryPoint = "#1")]
+        internal static extern void rawhid_close(int num);
+
         private readonly Timer _refreshTimer;
         private readonly Timer _statusTimer;
         private readonly IUpdateStatus _updateStatus;
-        private HidDevice _teensy;
-
+        private int _availableDevices;
+        
 
         public Communicator(IUpdateStatus updateStatus)
         {
             _updateStatus = updateStatus;
-            _teensy = GetDevice();
-            _refreshTimer = new Timer(200);
+            _availableDevices = rawhid_open(5, 0x16C0, 0x0486, 0xFFAB, 0x0200);
+            _refreshTimer = new Timer(500);
             _refreshTimer.Elapsed += (sender, e) =>
             {
-                if (_teensy == null || _updateStatus.Availability == Availability.Disabled || _updateStatus.Availability == Availability.Disconnected)
-                {
-                    _teensy = GetDevice();
-                }
+                _availableDevices = rawhid_open(1, 0x16C0, 0x0486, 0xFFAB, 0x0200);
             };
             _statusTimer = new Timer(2000);
             _statusTimer.Elapsed += (sender, e) => { GetStatus(); };
-            _refreshTimer.AutoReset = true;
-            _statusTimer.AutoReset = true;
-            _refreshTimer.Start();
+            _refreshTimer.AutoReset = false;
+            _statusTimer.AutoReset = false;
+            if (_availableDevices < 0)
+            {
+                _refreshTimer.Start();
+            }
+
             _statusTimer.Start();
         }
 
         public bool SendMessage(byte[] message)
         {
-            return _updateStatus.Availability == Availability.Online
-                   // Use the standard one when there are any issues to debug. Otherwise FastWrite uses about 1/20th the processing power.
-                   //&& _teensy.Write(message);
-                   && _teensy.FastWrite(message);
+            if (_availableDevices <= 0) return false;
+            var sendPtr = Marshal.AllocHGlobal(message.Length);
+            Marshal.Copy(message, 0, sendPtr, message.Length);
+            try
+            {
+                var result = rawhid_send(0, sendPtr, message.Length, 100);
+                ParseResultAndExecute(result);
+                return result == message.Length;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(sendPtr);
+            }
         }
 
         public void GetStatus()
         {
-            if (_teensy != null)
+            if (_availableDevices <= 0)
             {
-                // Even if the device has disabled LED updates, we want to be able to request a status check.
-                if (_updateStatus.Availability != Availability.Disconnected)
+                if (!_refreshTimer.Enabled)
                 {
-                    var message = new byte[64];
-                    message[0] = 0;
-                    message[1] = (byte) MessageType.Status;
-                    _teensy.FastWrite(message);
+                    _refreshTimer.Start();
                 }
 
-                var response = _teensy.FastRead();
-                if (response.Status == HidDeviceData.ReadStatus.Success && response.Output[1] == (byte) MessageType.Status)
-                {
-                    if (Enum.IsDefined(typeof(Availability), (int) response.Output[2]))
-                    {
-                        _updateStatus.Availability = (Availability) response.Output[2];
-                    }
-
-                    if (Enum.IsDefined(typeof(LogLevel), (int) response.Output[3]))
-                    {
-                        _updateStatus.LogLevel = (LogLevel) response.Output[3];
-                    }
-                }
-                else
-                {
-                    _updateStatus.Availability = Availability.Disconnected;
-                }
+                return;
             }
-            else
+            var sendBuffer = new byte[64];
+            var sendPtr = Marshal.AllocHGlobal(sendBuffer.Length);
+            var receiveBuffer = new byte[64];
+            var receivePtr = Marshal.AllocHGlobal(receiveBuffer.Length);
+            try
             {
-                _updateStatus.Availability = Availability.Disconnected;
+                for (var i = 0; i < sendBuffer.Length; i++)
+                {
+                    sendBuffer[i] = (byte) MessageType.Status;
+                }
+                sendBuffer[1] = (byte) MessageType.Status;
+                Marshal.Copy(sendPtr, sendBuffer, 0, sendBuffer.Length);
+                var result = rawhid_send(0, sendPtr, sendBuffer.Length, 100);
+                ParseResultAndExecute(result, () =>
+                {
+                    result = rawhid_recv(0, receivePtr, 64, 150);
+                    Marshal.Copy(receivePtr, receiveBuffer, 0, receiveBuffer.Length);
+                    ParseResultAndExecute(result, () =>
+                    {
+                        if (receiveBuffer[0] == (byte) MessageType.Status)
+                        {
+                            if (Enum.IsDefined(typeof(Availability), (int) receiveBuffer[1]))
+                            {
+                                _updateStatus.Availability = (Availability) receiveBuffer[1];
+                            }
+
+                            if (Enum.IsDefined(typeof(LogLevel), (int) receiveBuffer[2]))
+                            {
+                                _updateStatus.LogLevel = (LogLevel) receiveBuffer[2];
+                            }
+                        }
+                    });
+                });
+            }
+            catch
+            {
+                int test = 9;
+            }
+            finally
+            {
+                Marshal.FreeHGlobal(sendPtr);
+                Marshal.FreeHGlobal(receivePtr);
+                _statusTimer.Start();
             }
         }
 
-        private HidDevice GetDevice()
+        private void ParseResultAndExecute(int result, Action successfulAction = null)
         {
-            var devices = HidDevices.Enumerate().ToList();
-            var i = 0;
-            while (i < devices.Count)
+            if (result < 0)
             {
-                var device = devices[i];
-                byte[] bytes;
-                device.ReadProduct(out bytes);
-                if (!bytes.All(b => b == 0))
-                {
-                    var name = Encoding.Unicode.GetString(bytes).Trim(new[] { '\0' });
-                    if (name.ToLower().Contains("teensy"))
-                    {
-                        device.OpenDevice();
-                        device.MonitorDeviceEvents = true;
-                        _updateStatus.Availability = Availability.Disabled;
-                        return device;
-                    }
-                }
-                i++;
+                Reset();
             }
-            return null;
+
+            if (result > 0)
+            {
+                successfulAction?.Invoke();
+            }
+        }
+
+        private void Reset()
+        {
+            _updateStatus.Availability = Availability.Disconnected;
+            rawhid_close(0);
+            _availableDevices = 0;
+            _refreshTimer.Start();
         }
     }
 }
