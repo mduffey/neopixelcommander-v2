@@ -4,6 +4,7 @@ using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -117,15 +118,10 @@ namespace NeoPixelCommander.Library.ColorManagers
                 };
                 Task.WaitAll(tasks);
                 
-                var messages = new List<RangeMessage>();
-                messages.AddRange(BuildHorizontalMessages(tasks[0].Result, Strip.Top));
-                messages.AddRange(BuildHorizontalMessages(tasks[1].Result, Strip.Bottom));
-                messages.AddRange(BuildVerticalMessages(tasks[2].Result, Strip.Left));
-                messages.AddRange(BuildVerticalMessages(tasks[3].Result, Strip.Right));
-                if (_running)
-                {
-                    _packageHandler.SendRange(messages);
-                }
+                _packageHandler.SendRange(BuildHorizontalMessages(tasks[0].Result, Strip.Top).ToList());
+                _packageHandler.SendRange(BuildHorizontalMessages(tasks[1].Result, Strip.Bottom).ToList());
+                _packageHandler.SendRange(BuildHorizontalMessages(tasks[2].Result, Strip.Left).ToList());
+                _packageHandler.SendRange(BuildHorizontalMessages(tasks[3].Result, Strip.Right).ToList());
             }
             finally
             {

@@ -1,11 +1,11 @@
-#include <stdlib.h> // for malloc and free
-
 #include <OctoWS2811.h>
 #define NUM_STRIPS 4
 #define NUM_LEDS_PER_STRIP 61
+#define MESSAGE_CHECK 10
+#define MESSAGE_SINGLE 20
 
-DMAMEM int displayMemory[NUM_LEDS_PER_STRIP * NUM_STRIPS * 3 / 4];
-int drawingMemory[NUM_LEDS_PER_STRIP * NUM_STRIPS * 3 / 4];
+DMAMEM int displayMemory[NUM_LEDS_PER_STRIP * 6];
+int drawingMemory[NUM_LEDS_PER_STRIP * 6];
 
 const int config = WS2811_GRB | WS2811_800kHz;
 
@@ -20,17 +20,32 @@ const int config = WS2811_GRB | WS2811_800kHz;
 
 void setup() {
   leds.begin();
-  leds.show();
+  Serial.begin(9600);
 }
 
+byte buffer[1280];
+
 void loop() {
-  if (usb_serial_available() >= 4) {
-     int pos = usb_serial_getchar();
-     int red = usb_serial_getchar();
-     int green = usb_serial_getchar();
-     int blue = usb_serial_getchar();
-     ParsePositionAndUpdateLED(pos, red, green, blue);
+  int available = Serial.available();
+  if (available >= 5) {
+    int count = available;
+    if (available > 1280) {
+      count = 1280;
+    }
+    Serial.readBytes(buffer, count);
+    int index = 0;
+    while (index + 4 < count) {
+      int message = buffer[index];
+      
+      if (message == MESSAGE_CHECK) {
+        Serial.write("YES\n");
+      } else if (message == MESSAGE_SINGLE) {
+        ParsePositionAndUpdateLED(buffer[index + 1], buffer[index + 2], buffer[index + 3], buffer[index + 4]);
+      }
+      index += 5;
+    }
   }
+  leds.show();
 }
 
 void ParsePositionAndUpdateLED(int pos, int red, int green, int blue) {
