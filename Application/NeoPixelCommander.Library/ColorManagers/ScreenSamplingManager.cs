@@ -155,23 +155,24 @@ namespace NeoPixelCommander.Library.ColorManagers
                 Device = new Device(_adapter, DeviceCreationFlags.Debug);
                 // Works only with a single monitor. I'm only using one monitor, so I'm ignoring this. But, TODO.
                 _output = _adapter.GetOutput(0);
+                
                 _output1 = _output.QueryInterface<Output1>();
                 Height = _output.Description.DesktopBounds.Bottom - _output.Description.DesktopBounds.Top;
                 Width = _output.Description.DesktopBounds.Right - _output.Description.DesktopBounds.Left;
+                OutputDuplication = _output1.DuplicateOutput(Device);
                 Texture = new Texture2D(Device, new Texture2DDescription
                 {
                     CpuAccessFlags = CpuAccessFlags.Read,
                     BindFlags = BindFlags.None,
                     Format = Format.B8G8R8A8_UNorm,
-                    Width = Width,
-                    Height = Height,
+                    Width = OutputDuplication.Description.ModeDescription.Width,
+                    Height = OutputDuplication.Description.ModeDescription.Height,
                     OptionFlags = ResourceOptionFlags.None,
                     MipLevels = 1,
                     ArraySize = 1,
                     SampleDescription = { Count = 1, Quality = 0 },
                     Usage = ResourceUsage.Staging
                 });
-                OutputDuplication = _output1.DuplicateOutput(Device);
             }
 
             public Device Device { get; }

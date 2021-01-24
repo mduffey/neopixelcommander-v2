@@ -26,7 +26,7 @@
                     <ColumnDefinition/>
                     <ColumnDefinition/>
                 </Grid.ColumnDefinitions>
-                <Slider x:Name="Depth" Value="{Binding Depth}" Margin="0,10,0,0" TickFrequency="50" SmallChange="50" Minimum="0" Maximum="500" LargeChange="50" />
+                <Slider x:Name="Depth" Value="{Binding Depth}" Margin="0,10,0,0" TickFrequency="50" SmallChange="50" Minimum="1" Maximum="500" LargeChange="50" />
                 <TextBlock Grid.Column="1" VerticalAlignment="Center">
                     <Run Text="Pixels: "/>
                     <Run Text="{Binding Depth}" FontWeight="SemiBold" />

@@ -52,7 +52,7 @@ namespace NeoPixelCommander.Library
             {
                 try
                 {
-                    var port = new SerialPort(portName, 10000) {ReadTimeout = 5000, WriteTimeout = 5000};
+                    var port = new SerialPort(portName, 1200000) {ReadTimeout = 5000, WriteTimeout = 5000};
                     port.Open();
                     port.Write(new byte[] {10, 10, 10, 10, 10}, 0, 5);
                     var response = port.ReadLine();
