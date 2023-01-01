@@ -54,7 +54,7 @@ namespace NeoPixelCommander.Library
                 {
                     var port = new SerialPort(portName, 1200000) {ReadTimeout = 5000, WriteTimeout = 5000};
                     port.Open();
-                    port.Write(new byte[] {10, 10, 10, 10, 10}, 0, 5);
+                    port.Write(new byte[] {(int)MessageType.Check, 0, 0, 0, 0}, 0, 5);
                     var response = port.ReadLine();
 
                     if (response == "YES")
@@ -79,7 +79,7 @@ namespace NeoPixelCommander.Library
 
         public void SendMessage(byte[] message)
         {
-                _messageQueue.Enqueue(message);
+            _messageQueue.Enqueue(message);
         }
 
         public void GetStatus()

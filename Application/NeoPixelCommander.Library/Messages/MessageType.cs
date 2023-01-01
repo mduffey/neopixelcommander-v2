@@ -15,6 +15,10 @@ namespace NeoPixelCommander.Library.Messages
         /// <summary>
         /// Send one LED's colors
         /// </summary>
-        Single = 20
+        Single = 20,
+        /// <summary>
+        /// Send one color to all LEDs
+        /// </summary>
+        Universal = 30
     }
 }

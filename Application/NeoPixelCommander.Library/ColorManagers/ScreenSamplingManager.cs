@@ -152,7 +152,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 // Only works as long as you're only using one graphics card. So, TODO to change this someday.
                 _adapter = _factory.GetAdapter1(0);
                 // Create device from Adapter
-                Device = new Device(_adapter, DeviceCreationFlags.Debug);
+                Device = new Device(_adapter, DeviceCreationFlags.None);
                 // Works only with a single monitor. I'm only using one monitor, so I'm ignoring this. But, TODO.
                 _output = _adapter.GetOutput(0);
                 

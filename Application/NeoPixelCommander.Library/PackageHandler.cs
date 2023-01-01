@@ -19,11 +19,19 @@ namespace NeoPixelCommander.Library
         // HID thing, as the Teensy reports being able to receive 65 byte packets, even though we can only send 64.
         public bool SendUniversal(Color color)
         {
-            SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Left]).Select(i => new RangeMessage(Strip.Left, (byte)i, color)).ToList());
-            SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Right]).Select(i => new RangeMessage(Strip.Right, (byte)i, color)).ToList());
-            SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Top]).Select(i => new RangeMessage(Strip.Top, (byte)i, color)).ToList());
-            SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Bottom]).Select(i => new RangeMessage(Strip.Bottom, (byte)i, color)).ToList());
+            var message = new byte[5];
+            message[0] = (int)MessageType.Universal;
+            message[1] = color.R;
+            message[2] = color.G;
+            message[3] = color.B;
+            message[4] = 0;
+            _communicator.SendMessage(message);
             return true;
+            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Left]).Select(i => new RangeMessage(Strip.Left, (byte)i, color)).ToList());
+            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Right]).Select(i => new RangeMessage(Strip.Right, (byte)i, color)).ToList());
+            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Top]).Select(i => new RangeMessage(Strip.Top, (byte)i, color)).ToList());
+            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Bottom]).Select(i => new RangeMessage(Strip.Bottom, (byte)i, color)).ToList());
+            //return true;
         }
 
         public bool SendSettings(LogLevel logLevel)
