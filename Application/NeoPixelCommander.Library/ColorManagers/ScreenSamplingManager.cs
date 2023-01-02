@@ -1,4 +1,5 @@
-﻿using NeoPixelCommander.Library.Messages;
+﻿using NeoPixelCommander.Library.Communication;
+using NeoPixelCommander.Library.Messages;
 using SharpDX;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
@@ -17,7 +18,7 @@ namespace NeoPixelCommander.Library.ColorManagers
 {
     public class ScreenSamplingManager
     {
-        private readonly PackageHandler _packageHandler;
+        private readonly IColorCache _packageHandler;
         private int[] _horizontalSegments;
         private int[] _verticalSegments;
         private Wiring _wiring;
@@ -26,7 +27,7 @@ namespace NeoPixelCommander.Library.ColorManagers
 
         public ScreenSamplingManager(PackageHandler packageHandler)
         {
-            _packageHandler = packageHandler;
+            _packageHandler = new ColorCache(packageHandler);
         }
 
         public int Interval { get; set; }
@@ -43,6 +44,7 @@ namespace NeoPixelCommander.Library.ColorManagers
         {
             _running = false;
             Task.WaitAll(_task);
+            _packageHandler.Reset();
             _wiring.Dispose();
             _wiring = null;
         }
@@ -280,11 +282,11 @@ namespace NeoPixelCommander.Library.ColorManagers
             return IntPtr.Add(ptr, saturation * 4);
         }
 
-        private IEnumerable<RangeMessage> BuildHorizontalMessages(int[,] array, Strip strip)
+        private IEnumerable<SingleMessage> BuildHorizontalMessages(int[,] array, Strip strip)
         {
             for(int i = 0; i < LEDs.Counts[strip]; i++)
             {
-                yield return new RangeMessage(strip, (byte)i, new Color
+                yield return new SingleMessage(strip, (byte)i, new Color
                 {
                     R = (byte)(array[i, 0] / array[i, 3]),
                     G = (byte)(array[i, 1] / array[i, 3]),
@@ -293,7 +295,7 @@ namespace NeoPixelCommander.Library.ColorManagers
             }
         }
 
-        private IEnumerable<RangeMessage> BuildVerticalMessages(int[,] array, Strip strip)
+        private IEnumerable<SingleMessage> BuildVerticalMessages(int[,] array, Strip strip)
         {
             for (int i = 0; i < LEDs.Counts[strip]; i++)
             {
@@ -304,7 +306,7 @@ namespace NeoPixelCommander.Library.ColorManagers
                 //    B = (byte)(array[LEDs.Counts[strip] - i - 1, 2] / array[i, 3]),
                 //});
 
-                yield return new RangeMessage(strip, (byte)i, new Color
+                yield return new SingleMessage(strip, (byte)i, new Color
                 {
                     R = (byte)(array[i, 0] / array[i, 3]),
                     G = (byte)(array[i, 1] / array[i, 3]),

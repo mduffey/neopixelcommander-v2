@@ -52,16 +52,16 @@ namespace NeoPixelCommander.Library.ColorManagers
             var horizontalColors = Calculate(first, second, LEDs.Counts[Strip.Top] * 2);
             var verticalColors = Calculate(first, second, LEDs.Counts[Strip.Left] * 2);
             verticalColors.Reverse();
-            var messages = new List<RangeMessage>();
+            var messages = new List<SingleMessage>();
             for (int i = 0; i < LEDs.Counts[Strip.Top]; i++)
             {
-                messages.Add(new RangeMessage(Strip.Top, (byte)i, horizontalColors[i]));
-                messages.Add(new RangeMessage(Strip.Bottom, (byte)i, horizontalColors[i + LEDs.Counts[Strip.Top]]));
+                messages.Add(new SingleMessage(Strip.Top, (byte)i, horizontalColors[i]));
+                messages.Add(new SingleMessage(Strip.Bottom, (byte)i, horizontalColors[i + LEDs.Counts[Strip.Top]]));
             }
             for (int i = LEDs.Counts[Strip.Left] - 1; i >= 0; i--)
             {
-                messages.Add(new RangeMessage(Strip.Left, (byte)i, verticalColors[i + LEDs.Counts[Strip.Right]]));
-                messages.Add(new RangeMessage(Strip.Right, (byte)i, verticalColors[i]));
+                messages.Add(new SingleMessage(Strip.Left, (byte)i, verticalColors[i + LEDs.Counts[Strip.Right]]));
+                messages.Add(new SingleMessage(Strip.Right, (byte)i, verticalColors[i]));
             }
             _packageHandler.SendRange(messages);
         }

@@ -15,8 +15,7 @@ namespace NeoPixelCommander.Library
         {
             _communicator = communicator;
         }
-        // Note: all messages define an initial byte with a value of 0, as it's swallowed by...something. Appears to be a standard
-        // HID thing, as the Teensy reports being able to receive 65 byte packets, even though we can only send 64.
+
         public bool SendUniversal(Color color)
         {
             var message = new byte[5];
@@ -27,11 +26,6 @@ namespace NeoPixelCommander.Library
             message[4] = 0;
             _communicator.SendMessage(message);
             return true;
-            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Left]).Select(i => new RangeMessage(Strip.Left, (byte)i, color)).ToList());
-            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Right]).Select(i => new RangeMessage(Strip.Right, (byte)i, color)).ToList());
-            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Top]).Select(i => new RangeMessage(Strip.Top, (byte)i, color)).ToList());
-            //SendRange(Enumerable.Range(0, LEDs.Counts[Strip.Bottom]).Select(i => new RangeMessage(Strip.Bottom, (byte)i, color)).ToList());
-            //return true;
         }
 
         public bool SendSettings(LogLevel logLevel)
@@ -45,7 +39,7 @@ namespace NeoPixelCommander.Library
             _communicator.GetStatus();
         }
 
-        public void SendRange(ICollection<RangeMessage> rangeMessages)
+        public void SendRange(ICollection<SingleMessage> rangeMessages)
         {
             if (rangeMessages.Any())
             {
@@ -53,7 +47,7 @@ namespace NeoPixelCommander.Library
                 var bytes = new byte[rangeMessages.Count * 5];
                 foreach (var message in rangeMessages)
                 {
-                    bytes[count * 5] = 20;
+                    bytes[count * 5] = (byte)message.Type;
                     bytes[count * 5 + 1] = message.Position;
                     bytes[count * 5 + 2] = message.Red;
                     bytes[count * 5 + 3] = message.Green;
@@ -68,16 +62,9 @@ namespace NeoPixelCommander.Library
             }
         }
 
-        public void SendRange(params RangeMessage[] rangeMessages)
+        public void SendRange(params SingleMessage[] rangeMessages)
         {
             SendRange(rangeMessages);
-        }
-
-        private byte[] CreatePacket(MessageType messageType)
-        {
-            var bytes = new byte[64];
-
-            return bytes;
         }
 
     }

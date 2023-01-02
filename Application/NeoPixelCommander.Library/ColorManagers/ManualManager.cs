@@ -30,18 +30,18 @@ namespace NeoPixelCommander.Library.ColorManagers
                 {
                     foreach (var strip in SelectedStrips)
                     {
-                        _packageHandler.SendRange(new RangeMessage(strip, (byte)SingleLED, Color));
+                        _packageHandler.SendRange(new SingleMessage(strip, (byte)SingleLED, Color));
                     }
                     return;
                 }
                 else
                 {
-                    var messages = new List<RangeMessage>();
+                    var messages = new List<SingleMessage>();
                     foreach (var strip in SelectedStrips)
                     {
                         for (int i = FirstLED - 1; i < LastLED; i++)
                         {
-                            messages.Add(new RangeMessage(strip, (byte)i, Color));
+                            messages.Add(new SingleMessage(strip, (byte)i, Color));
                         }
                     }
                     _packageHandler.SendRange(messages);
